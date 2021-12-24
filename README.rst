@@ -10,7 +10,7 @@ at Server Side, ``neoads`` will execute it as a query rather than attempt to
 instantiate the data structure in local memory, modify it and then push it
 back to the backend.
 
-``neoads``' data structures are implemented in a way that is:
+``neoads`` data structures are implemented in a way that is:
 
 * Agnostic to domain-specific data model
     * You can create lists, set or maps of *anything* by making ``ElementDomain`` the

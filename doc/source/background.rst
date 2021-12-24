@@ -6,41 +6,44 @@ The ``neoads`` Memory Space
 The objective of this section is to provide a broad overview of some general ideas behind the design of ``neoads`` that
 will become useful when considering its operation in more detail in later sections.
 
-The main point that this section is making is that when using ``neoads``, the Neo4J backend is viewed as one large
-memory space similar to the computer's Random Access Memory (RAM).
+The main point that this section is making is that ``neoads`` turns the Neo4J backend to one large memory space
+similar to the computer's Random Access Memory (RAM).
 
 
 A computer's RAM
 ----------------
-A computer's [#f1]_ RAM supports two operations, those of READ and WRITE, each requiring an ADDRESS. RAM transactions take
-place in WORD boundaries with varying word lengths depending on hardware architecture and / or operations.
+A computer's [#f1]_ RAM supports two operations over WORDs, those of READ and WRITE, each requiring an ADDRESS.
 
-Although RAM is accessed via an ADDRESS that is an integer number, this number can be the result of a mathematical
-operation. That is, it is possible to access memory indirectly via the use of
+These operations take place in WORD boundaries with varying word lengths depending on hardware architecture
+and / or the operations themselves.
+
+RAM is accessed via an ADDRESS that is an integer number, and it can well be the result of a mathematical operation.
+That is, it is possible to access memory indirectly via the use of
 `pointers <https://en.wikipedia.org/wiki/Pointer_(computer_programming)>`_.
 
-Given an ADDRESS, computers WRITE and READ data from RAM without really knowing how to interpret those data. The only
-type of word that computers really work with is the Integer [#f2]_. Almost all of the data types that have been
-conceived to deal with specific problems are supported by high level programming languages.
+Given an ADDRESS, computers WRITE and READ data to/from RAM without really knowing how to interpret those data (e.g.
+a record that holds information about a Person, is still a contiguous block of memory as far as a duplication operation
+is concerned). The only type of word that computers really work with is the Integer [#f2]_.
 
-High level programming languages abstract RAM transactions but retain the basic nature of memory access. In a language
-like Python, for example, WORDs in RAM are accessed via variables that instead of ADDRESS have human readable names and
-instead of operations like *"Write [0x0B, Ox0E, x0E] beginning at 0xF16"*, the easier expression ``my_variable = 4096``
-is used. Higher level languages also add two more operations to READ, WRITE in order to RESERVE and RELEASE a range of
-memory ADDRESSes that are allocated for a specific purpose.
+The majority of these operations are invisible to users of higher level programming languages. Those languages abstract
+RAM transactions (and other data validity checks) retaining only the basic nature of memory access.
 
-Therefore, higher level languages abstract memory access via their ability to manage variables (and literal values).
-The two most important characteristics of a variable in a programming language are its:
+In a language like Python, for example, WORDs in memory are accessed via variables that instead of ADDRESS have human
+readable names and instead of operations like *"Write [0x0B, Ox0E, x0E] beginning at 0xF16"*, use "assignment"
+(``my_variable = 4096``). Higher level languages also add two more operations to READ, WRITE in order to RESERVE and
+RELEASE a range of memory ADDRESSes that are allocated for a specific purpose (e.g. C's ``malloc(), free()``).
+
+The two most important characteristics of a "variable" in a higher level programming language are its:
 
 1. **Name**; and
 2. **Data Type**
 
 When a variable is initialised within the `scope <https://en.wikipedia.org/wiki/Scope_(computer_science)>`_ of a
-a given higher level imperative computer language, an entry is made on a look up table that **associates** its
-*logical name* (``my_scream``, ``your_scream``, ``the_icecream``, etc) with its *physical* name (or in other words the
-ADDRESS).
+a process or function, an entry is made on a look up table that **associates** its *logical name* (``my_scream``,
+``your_scream``, ``the_icecream``, etc) with its *physical* name (or in other words its ADDRESS in *some* part of
+memory).
 
-The logical name of the variable enables a programmer to refer to the variable and its data type implies how to treat
+The logical name of the variable enables a programmer to refer to the variable and its data type determines how to treat
 the variable.
 
 At its most elementary form, a data type is a set of valid values associated with that data type. More advanced forms of
@@ -138,7 +141,7 @@ However, much more information on each object separately is available in section
 
 
 .. [#f1] "Computer" is used here in the more general sense of a computing unit. Not strictly implying a desktop
-          computer.
+          computer. Specifically, anything that runs Python (and ``neoads``) would fit this description.
 .. [#f2] Modern computers can also understand Real numbers of varying precision but they certainly cannot work with
          something like a complex data type.
 .. [#f3] Database used to be spelled as "Data Base"...Mind blown.

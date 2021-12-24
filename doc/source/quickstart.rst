@@ -3,10 +3,9 @@
 Quick Start
 ===========
 
-This section contains the bear minimum usage examples for a user to get up and
-running with ``neoads`` with pointers to more detailed parts of the documentation.
+This section contains the bear minimum usage examples for a user to get up to speed with ``neoads``.
 
-From a bird's eye perspective, ``neoads`` supports:
+Broadly speaking, ``neoads`` supports:
 
 * Variables of `Simple data types <https://en.wikipedia.org/wiki/Primitive_data_type>`_
     * A number (whether integer or float)
@@ -17,11 +16,9 @@ From a bird's eye perspective, ``neoads`` supports:
         * String
         * Number
         * Date
-* Variables of `Abstract Data Types <https://en.wikipedia.org/wiki/Abstract_data_type>`_ from which
-  it also derives its name.
+* Variables of `Abstract Data Types <https://en.wikipedia.org/wiki/Abstract_data_type>`_
 
-But, prior to saving, recalling and combining abstract data structures using ``neoads``, we first have to initialise
-it.
+Prior to making use of any of these though, ``neoads``, needs to be initialised.
 
 Initialisation
 --------------
@@ -42,13 +39,14 @@ using ``neoads``, a valid
 `neomodel connection <https://neomodel.readthedocs.io/en/latest/getting_started.html#connecting>`_ is required.
 
 For a more detailed discussion on initialisation as well as working with ``neoads`` through ``neoads.MemoryManager``
-objects, please see `this section <>`_.
+objects, please see :ref:`this section <memory-manager>`.
 
 
 Working with ``neoads`` typed variables
 ---------------------------------------
 Just as it happens with generic programming languages, in ``neoads``, a variable has
-a **name** and a **data type** that determines the semantics associated with the variable.
+a **name** and a **data type** that determines how computation is to be carried out with the
+content of a variable.
 
 During initialisation, **all variables** accept an optional ``name`` parameter. This name can later be
 used to get a reference to a particular variable. Unnamed variables **can** exist and they are the
@@ -59,49 +57,69 @@ suitable (native Python) default ``value`` data type.
 Working with ``Simple`` and ``Composite`` typed variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Just equipped with this basic knowledge, we can start looking at some examples of the complete
-`CRUD <https://en.wikipedia.org/wiki/Create,_read,_update_and_delete>`_ lifecycle of a ``neoads`` object ::
+`CRUD <https://en.wikipedia.org/wiki/Create,_read,_update_and_delete>`_ lifecycle of a ``neoads`` object.
+
+::
 
     # To CREATE variables, simply call their constructor with
-    # the parameters value (mandatory), name(optional) and don't
+    # the parameter's value (mandatory), name(optional) and don't
     # forget to call ``save()`` for these operations to be executed
     # at server side.
-    #
+
+
     a_number = neoads.SimpleNumber(112).save()
     a_date = neoads.SimpleDate(datetime.date(2015, 10, 21)).save()
     a_string = neoads.CompositeString("Hello World").save()
-    #
+
+
     # To name a variable...
-    the_answer = neoads.Simplenumber(42, name="answer_to_everything").save()
-    #
+
+    the_answer = neoads.SimpleNumber(42, name="answer_to_everything").save()
+
+
     # To DELETE variables, simply call `delete()`.
+
     a_list_of_objects = [a_number, a_date, a_string]
     [a_list_item.delete() for a_list_item in a_list_of_objects]
-    #
+
+
     # To RETRIEVE (get a reference to) a saved variable...
-    #
+
     some_number = neoads.SimpleNumber.nodes.get(name="answer_to_everything")
-    #
+
+
     # To UPDATE the value of that variable...
+
     some_number.value = 84
     some_number.save()
-    #
+
+
     # Obviously, some_number can be deleted here
     # via a call to its delete() method.
-    # some_number.delete()
+
+    some_number.delete()
+
+The exact same example applies for ``SimpleDate`` with the exception that the value
+argument must be a standard Python ``datetime`` object.
 
 Working with ``CompositeArray`` typed variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Arrays are initialised in exactly the same way but also offer suitable zero based indexing through their getters and
-setters::
+setters
+
+::
 
     # Create an unnamed Array of strings
+
     the_granville_brothers = neoads.CompositeArrayString(["Zantford Granville", "Thomas Granville",
                                                           "Bobby Granville", "Mark Granville",
                                                           "Edward Granville"]).save()
     print(the_granville_brothers[0])
 
 Setting the value of an element of the array works through a corresponding "setter" **but**, for this change to
-take effect **server-side**, the object's ``save()`` method has to be called. For example::
+take effect **server-side**, the object's ``save()`` method has to be called. For example:
+
+::
 
     the_granville_brothers[2] = "Robert Granville"
     the_granville_brothers.save()
@@ -114,65 +132,90 @@ Working with ``Abstract`` typed variables
 Abstract type values are initialised in a similar way for trivial use cases, but also have functionality that makes
 them special within ``neoads``.
 
-First of all, the data types that implement the abstract data structures are agnostic of their content. Therefore,
-immediately, there is a distinction between the data structure itself and its contents. This distinction is important
-when considering the DELETE operation. In ``neoads``, Abstract Data Structures are **cleared** (that is, their content
-is reset) via a call to ``clear()`` but to completely remove the variable from "memory", the ``destroy()`` method is
-called. Contrast this to simply calling ``delete()`` when working with Simple and Composite data type variables.
-Consequently, if an abstract data type is attempted to be deleted without first having been cleared, an exception will
-be thrown. This is the only similarity between the core abstract data structures offered by ``neoads``.
+First of all, abstract data structures are agnostic of their content.
+
+Therefore, there is a distinction between the data structure itself and its contents. This distinction is important
+when considering the DELETE operation.
+
+In ``neoads``, abstract data structures are **cleared** (that is, their *content* is reset) via a call to ``clear()``
+but to completely *remove the variable from "memory"*, the ``destroy()`` method is called.
+
+Contrast this to simply calling ``delete()`` when working with Simple and Composite ``neoads`` variables.
+
+Consequently, if an attempt is made to delete an abstract data type variable without first having "cleared" it,
+an exception will be thrown.
+
+This is the only similarity between the core abstract data structures offered by ``neoads``.
 
 ``neoads`` Abstract typed variables **do not take default values** but they are meant to be initialised in rich ways
 via `CYPHER <https://neo4j.com/developer/cypher-query-language/>`_ queries.
 
 However, for completeness, each data type has suitable methods to update its contents and these will be used here to
-provide some basic examples of their functionality. For a more detailed exposition, please refer to `other places <>`_
-in the documentation.
+provide some basic examples of their functionality.
+
 
 Working with ``AbstractSet``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A `Set <https://en.wikipedia.org/wiki/Set_(abstract_data_type)>`_ stores **unique** values in no particular order and
-does not support accessors of any kind, *except* for testing for set membership. A Set can also be combined with other
-sets via suitable operators.
+A `set <https://en.wikipedia.org/wiki/Set_(abstract_data_type)>`_ stores **unique values** in no particular order and
+does not support accessors of any kind *except* for testing for set membership.
 
-An indicative CRUD session with a ``neoads.AbstractSet`` looks like ::
+A set can also be combined with other sets via suitable operators.
+
+An indicative CRUD session with a ``neoads.AbstractSet`` looks like this:
+
+::
 
     import random
 
+
     # First, let's create a set of strings as indicative content
     # for our AbstractSet
+
     some_string_values = ["Alpha", "Beta", "Gamma", "Beta", "Delta"]
     some_strings = [neoads.CompositeString(k).save() for k in some_string_values]
-    #
+
+
     # Now, let's create an AbstractSet
-    #
-    my_set = neoads.AbstractSet(name="MySet").save() # The naming is entirely optional here.
-    #
+    # Naming this set is entirely optional here.
+
+    my_set = neoads.AbstractSet(name="MySet").save()
+
+
     # As the set is empty, its length is expected to be zero
-    print("The length of 'MySet' is {}.".format(len(my_set))
-    #
+
+    print(f"The length of 'MySet' is {len(my_set)}.")
+
+
     # Let's add the strings from `some_strings` here:
-    #
+
     my_set.add(some_strings[0])
-    #
+
+
     # This will change the length of the AbstractSet (obviously)
-    print("The length of 'MySet' is {}.".format(len(my_set))
-    #
+    print(f"The length of 'MySet' is {len(my_set)}.")
+
+
     # Let's keep adding elements, we can do this via chained calls to 'add()' too
+
     my_set.add(some_strings[1]).add(some_strings[2]).add(some_strings[3]).add(some_strings[4])
-    #
-    # Or of course, we could add those strings as part of an iteration too
+
+
+    # Or, we could add those strings as part of an iteration too
     [my_set.add(an_element) for an_element in some_strings[5:]]
-    #
+
+
     # At this point, the AbstractSet is initialised and its length
     # is going to be equal to the number of unique elements within 'some_string_values'
     # Let's have a look
-    print("Unique integers in 'some_random_integers':{}.".format(len(set(some_random_integers))))
-    print("The length of 'MySet' is {}.".format(len(my_set))
+
+    print(f"Unique integers in some_random_integers:{len(set(some_random_integers))}.")
+    print(f"The length of MySet is {len(my_set)}.")
 
 Once an ``AbstractSet`` is initialised, it is possible to test its contents for membership via Python's ``in`` operator.
-Continuing with the above example::
+Continuing with the above example:
+
+::
 
     # Is CompositeString("Alpha") part of the AbstractSet?
     if some_strings[0] in my_set:
@@ -184,114 +227,148 @@ Continuing with the above example::
     if some_other_string in my_set:
         print("Yes, Zeta is in the Set too") # This message will not be printed.
 
-``AbstractSet``s can be combined via operators, for example, the result of ``{1,2,3} - {2,3,5}`` is ``{1}``. Let's
-do it::
+``AbstractSet`` can be combined via operators with other ``AbstractSet`` typed variables. For example,
+the result of ``{1,2,3} - {2,3,5}`` is ``{1}``. Let's do that:
+
+::
 
     # Create the two sets
+
     u = neoads.AbstractSet(name = "u").save()
     u.add(neoads.SimpleNumber(1).save()).add(neoads.SimpleNumber(2).save()).add(neoads.SimpleNumber(3).save())
     v = neoads.AbstractSet(name = "v").save()
     v.add(neoads.SimpleNumber(2).save()).add(neoads.SimpleNumber(3).save()).add(neoads.SimpleNumber(5).save())
-    # Obtain their difference
-    q = u - v
-    # Check its length (at least)
-    print("The length of 'q' is {}".format(len(q)))
 
-Finally, clearing and completely deleting an ``AbstractSet`` is done via calls to::
+
+    # Obtain their difference
+
+    q = u - v
+
+
+    # Check its length (at least)
+
+    print(f"The length of q is {len(q)}")
+
+
+Finally, clearing and completely deleting an ``AbstractSet`` is done via calls to:
+
+::
 
     # Clear the data structure
-    my_set.clear()
-    print("The length of 'MySet' is {}".format(len(my_set)))
 
-The above clears the ``AbstractSet`` but **does not remove it** from the DBMS. To do that::
+    my_set.clear()
+    print(f"The length of MySet is {len(my_set)}")
+
+The above clears the ``AbstractSet`` but **does not remove it** from Neo4J (or, the DBMS more generally).
+
+To do that:
+
+::
 
     # Remove MySet completely
+
     my_set.destroy()
 
-
-
-
-    Create a simple variable called ``answer``::
-
-    u = SimpleNumber(42, "answer").save()
-
-`u` is now a data object that provides full access to the ``SimpleNumber``. To
-recall it from the database management system simply use::
-
-    v = SimpleNumber.nodes.get(name="answer")
-
-The exact same example applies for ``SimpleDate`` with the exception that the value
-argument must be a standard Python ``datetime`` object.
-
 For much more detailed information about working with ``neoads.AbstractSet`` please see
-`elsewhere in the documentation <>`_.
+:ref:`elsewhere in the documentation <_compositedatatypes>`.
 
 
 Working with ``AbstractMap``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-A `Map <https://en.wikipedia.org/wiki/Associative_array)>`_ establishes a *one-to-one* relationship between a ``key``
-and a ``value``.
+A `Map <https://en.wikipedia.org/wiki/Associative_array)>`_ establishes a *one-to-one* relationship between a Key
+and a Value.
 
-``neoads.AbstractMap`` entities are basically implemented on top of ``AbstractSet`` in the sense that they use one
-set to describe the unique keys they store and another set that creates the actual link between the ``key`` and the
-``value``.
+``neoads.AbstractMap`` entities are implemented *on top of* ``AbstractSet``, in the sense that they use one
+set to describe the unique keys they store and another set that creates the actual link between the Key and the
+Value.
 
-An indicative CRUD session with a ``neoads.AbstractMap`` looks like ::
+An indicative CRUD session with a ``neoads.AbstractMap`` looks like this:
+
+::
 
     import random
 
     # First, let's create some content that will later be added to the Map
+
     data = {"One": 1.0, "Two": 2.0, "Three": 3.0, "Four": 4.0}
-    elements = [(neoads.CompositeString(an_item[0]).save(), neoads.SimpleNumber(an_item[1]).save())
+    elements = [(neoads.CompositeString(an_item[0]).save(),
+                 neoads.SimpleNumber(an_item[1]).save())
                 for an_item in data.items()]
+
+
     # Create and populate the map
+
     u = neoads.AbstractMap().save()
-    for an_item in elements:
-        u[an_item[0]] = an_item[1]
+    for a_key, a_value in elements:
+        u[a_key] = a_value
 
-The "length" (or size) of the mapping can be obtained via a simple call to ``len()``::
+The "length" (or size) of the mapping can be obtained via a simple call to ``len()``:
 
-    print("The length of the mapping is {}".format(len(u)))
+::
 
-Items in the mapping can be accessed via::
+    print(f"The length of the mapping is {len(u)}")
 
-    print("The numeral representation of {} is {}".format(elements[0][0], u[elements[0][0]])
+Items in the mapping can be accessed via:
+
+::
+
+    print(f"The numeral representation of {elements[0][0]} is {u[elements[0][0]]}")
 
 It is also possible to determine membership of an item within the mapping **by key** (similar to the way a `Python
-dictionary <https://docs.python.org/3/tutorial/datastructures.html#dictionaries>`_ can::
+dictionary <https://docs.python.org/3/tutorial/datastructures.html#dictionaries>`_ can:
+
+::
 
     if elements[0][0] in u:
-        print("The mapping contains this element") # This line will be printed.
+        print(f"The mapping contains this element") # This line will be printed.
 
 
-And individual entries can be removed from the map via a simple call to Python's ``del()``::
+Individual entries can be removed from the map via a simple call to Python's ``del()``:
+
+::
 
     del(u[elements[0][0]])
-    print("The length of the mapping is {}".format(len(u)))
+    print(f"The length of the mapping is {len(u)}")
 
 ``AbstractMap`` is cleared and "destroyed" via the same interface as described in the ``AbstractSet`` section.
 
+
 Working with ``AbstractDLList``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 A `Doubly Linked List <https://en.wikipedia.org/wiki/Doubly_linked_list>`_ is very similar to an Array (in terms of
 the way it presents itself to its user) but its size is only limited by the size of the RAM.
 
-A trivial way to instantiate an ``AbstractDLList`` is as follows::
+A trivial way to instantiate an ``AbstractDLList`` is:
+
+::
 
     import random
+
+
     # Create some generic content that is to be added to the DLList
-    elements = [neoads.SimpleNumber(random.random()).save() for i in range(0, 10)]
+
+    elements = [neoads.SimpleNumber(random.random()).save()
+                for i in range(0, 10)]
+
+
     # Create and populate the DLList
+
     u = neoads.AbstractDLList().save()
     [u.append(an_element) for an_element in elements]
 
-Calls to ``append()`` can also be chained, in a way similar to how ``neoads.AbstractMap.add()`` does.
+Calls to ``append()`` can also be chained, in a way similar to how ``neoads.AbstractMap.add()`` works.
 
-With an instantiated list, its length can be obtained via a "natural" call to ``len()``::
+With an instantiated list, its length can be obtained via a "natural" call to ``len()``:
 
-    print("The length of list is {}".format(len(u)))
+::
 
-The item at the :math:`n^{th}` index (here, 2) can be obtained via::
+    print(f"The length of list is {len(u)}")
+
+
+The item at the :math:`n^{th}` index (here, :math:`2`) can be obtained via:
+
+::
 
     some_item = u[2]
 
@@ -299,30 +376,43 @@ It is worth noting here that this ``AbstractDLList`` call will return an object 
 element of the list happens to be (here ``SimpleNumber``). Contrast this to what is returned by ``CompositeArray``
 type variables.
 
-The :math:`n^{th}` list item can also be deleted via a "natural" ``del()`` call::
+The :math:`n^{th}` list item can also be deleted via a "natural" ``del()`` call:
+
+::
 
     del(u[2])
 
-``AbstractDLList``s can be extended by merging their contents with the contents of another ``AbstractDLList``::
+
+``AbstractDLList`` can be extended by merging their contents with the contents of another ``AbstractDLList``:
+
+::
 
     # Create some generic content that is to be added to the DLLists by query
-    elements = [neoads.SimpleNumber(random.random()).save() for i in range(0, 4)]
-    # # Create and populate the DLLists
+
+    elements = [neoads.SimpleNumber(random.random()).save()
+                for i in range(0, 4)]
+
+
+    # Create and populate the DLLists
+
     u = neoads.AbstractDLList().save()
     v = neoads.AbstractDLList().save()
     v_list_name = v.name
     [u.append(an_element) for an_element in elements[0:2]]
     [v.append(an_element) for an_element in elements[2:4]]
+
+
     # Merge v into u
+
     u.extend_by_merging(v)
 
-Notice here that ``extend_by_merging()`` calls can be chained and that the items of the list are **not** iterated. The
-list is extended by having the "tail" of the first, point to the "head" of the next list and then erasing the second
-list. Therefore, it is possible for ``AbstractDLList``s to grow very large, very quickly, with only a few calls to the
+Notice here that ``extend_by_merging()`` calls can be chained too and that the items of the list are **not** iterated.
+
+The list is extended by having the "tail" of the first, point to the "head" of the next list and then erasing the second
+list. Therefore, it is possible for ``AbstractDLList`` to grow very large, very quickly, with only a few calls to the
 ``extend_by_merging()`` of various lists.
 
-And finally, ``AbstractDLList`` is cleared and "destroyed" via the same interface as described in the `generic
-Abstract data structures section <>`_.
+And finally, ``AbstractDLList`` is cleared and "destroyed" via the same interface as described previously.
 
 
 Brief introduction to advanced ``neoads``
@@ -338,7 +428,8 @@ queries that minimise the amount of data that are exchanged between the server a
 A full exposition of all the possible usage combinations of abstract data types is not possible within this
 (already large) section which is supposed to be a "Quickstart".
 
-Therefore, some of this advanced functionality will be presented here through extremely small and minimal examples.
+Therefore, some of this advanced functionality will be presented here through minimal examples.
+
 Interested readers are welcome to dive deeper into the more detailed descriptions of the data types and their theory
 that is available elsewhere in this documentation to deal with more complex use cases.
 
@@ -347,15 +438,17 @@ Abstract data structures over arbitrary data models
 
 All the abstract data structures offered by the "core" ``neoads`` can point to arbitrary content **as long as** that
 content descends from a particular ``neoads`` entity, called ``ElementDomain``. This "content" can be as complex
-as it gets.
+as it is required by a given domain.
 
 In the project that motivated its development, ``neoads`` supports a data model in excess of 30 entities with complex
 relationships between them (including inheritance).
 
-The smallest expositional example here will re-use a scenario that has been done to exhaustion in Neo4j examples, that
-of some ``Person`` who is related to other ``Person`` entities and potentially living in some ``Country``.
+The smallest demonstration here will re-use a scenario that has been done to exhaustion in Neo4j examples, that
+of some ``Person`` who is related to other ``Person`` and potentially living in some ``Country``.
 
-This storyline is captured in the following data model::
+This storyline is captured in the following data model:
+
+::
 
     class PersonalRelationship(neomodel.StructredRel):
         """
@@ -371,14 +464,18 @@ This storyline is captured in the following data model::
     class Person(neoads.ElementDomain):
         uid = neomodel.UniqueIdProperty()
         full_name = neomodel.StringProperty()
-        acquainted_with = neomodel.RelationshipTo("Person", "ACQUAINTED_WITH", model = PersonalRelationship)
+        acquainted_with = neomodel.RelationshipTo("Person",
+                                                  "ACQUAINTED_WITH",
+                                                  model = PersonalRelationship)
         lives_in = neomodel.RelationshipTo("Country", "LIVES_IN")
 
 The important point to notice here is that any entity that might be needed to become "content" of some abstract data
-structure, **must** derive from ``ElementDomain``. In the above example, we anticipate that for a given use case,
-we might need to create ``AbstractSet, AbstractMap`` or ``AbstractDLList`` of ``Person, Country`` entities.
+structure, **must** derive from ``ElementDomain``.
 
-From this point onwards, the examples assume that a neo4j instance is available and it contains data tha conform to
+In the above example, we anticipate that for a given use case, we might need to create ``AbstractSet, AbstractMap``
+or ``AbstractDLList`` of ``Person, Country`` entities.
+
+From this point onwards, the examples assume that a Neo4J instance is available and it contains data tha conform to
 this minimal data model.
 
 
@@ -388,11 +485,17 @@ Initialising lists via queries: The direct way
 Suppose now that we have a need to create a doubly linked list of ``Person`` entities that live within the EU27
 geopolitical region.
 
-With ``neoads``, this can be achieved via a simple initialisation-by-query call, as follows::
+With ``neoads``, this can be achieved via a simple initialisation-by-query call, as follows:
+
+::
 
     # First of all create the list
+
     some_abstract_list = neoads.AbstractDLList(name="EU_27_PERSONS").save()
+
+
     # Then populate it
+
     some_abstract_list.from_query("MATCH (ListItem:Person)-[LIVES_IN]->(b:Country) "
                                   "WHERE b.name IN ['Austria', 'Belgium', 'Bulgaria', 'Croatia', 'Cyprus', 'Czechia', "
                                   "'Denmark', 'Estonia', 'Finland', 'France', 'Germany', 'Greece', 'Hungary', "
@@ -403,25 +506,29 @@ With ``neoads``, this can be achieved via a simple initialisation-by-query call,
 Notice here that ``from_query()``, accepts an **incomplete**, **READ** type CYPHER query that **must** have binded one
 of its variables to the graph entity that will constitute the content of the doubly linked list.
 
-This binding must specifically be called ``ListItem``.
+**This binding must specifically be called ``ListItem``.**
 
-In one phrase, what this query says is *"Run a CYPHER query and build a list with the results"*, provided here that
-these results are single entities of course.
+In one phrase, what this query says is *"Run a CYPHER query and build a doubly linked list, the nodes of which point
+to the query's results"*, provided here that these results are single entities of course.
 
-In a similar way it is also possible to initialise a ``neoads.AbstractMap`` via its ``from_keyvalue_node_query()``.
+In a similar way it is also possible to initialise a ``neoads.AbstractMap`` via its ``from_keyvalue_node_query()``
+method.
 
 
 They come together like Voltron
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-``neoads`` abstract data structures can actually point to **any** ``PersistentElement`` entity of which they also
-descend from.
+``neoads`` abstract data structures can actually point to **any** ``PersistentElement`` entity,
+**including themselves**, because they also descend from ``PersistentElement``.
 
-Therefore, abstract data structures can contain abstract data structures...ad infinitum.
+Therefore, ``neoads`` abstract data structures can contain abstract data structures that contain abstract data
+structures...ad infinitum.
 
 This means that it is possible to piece together **any** conceivable combination such as an abstract list of
 abstract lists of abstract maps between strings and lists of sets of arbitrary data model entities and traverse this
-`Voltron <https://en.wikipedia.org/wiki/Voltron>`_ data structure with something like::
+`Voltron <https://en.wikipedia.org/wiki/Voltron>`_ data structure with something like:
+
+::
 
     if my_entity in u[0][1][ComplexString("Something").save()][9]:
         # Do something
@@ -432,32 +539,42 @@ whose ``[ComplexString("Something").save()]`` accessor returns a list, whose ``[
 ``__contains__`` operation is called to determine if it contains some arbitrary data model entity ``my_entity``.
 
 But, before we start creating "Voltron" size data structures, we can play around here with something like a list of
-lists, which could be seen as a two dimensional array. For example::
+lists, which can be seen as a two dimensional array. For example:
+
+::
 
     import random
+
+
     # This will be a list of 10 "rows" holding lists of 20 "columns" of SimpleNumber type elements.
+
     m_rows = 10
     n_cols = 20
 
     row_list = neoads.AbstractDLList().save()
     for a_row in range(0, m_rows):
         col_list = neoads.AbstractDLList().save()
-        [col_list.append(neoads.SimpleNumber(random.random()).save()) for k in range(0,n_cols)]
+        [col_list.append(neoads.SimpleNumber(random.random()).save())
+         for k in range(0,n_cols)]
         row_list.append(col_list)
 
 This now has initialised ``row_list`` as a doubly linked list that points to doubly linked lists that point to
 ``SimpleNumber`` type entities.
 
-We can access any of those via::
+We can access any of those via:
 
-    print("The 5,5 element is {}".format(row_list[5][5]))
+::
+
+    print(f"The 5,5 element is {row_list[5][5]}")
 
 
 What else is there?
 -------------------
 
-This quickstart guide is meant to provide a very brief exposition to the ideas behind ``neoads``. There are a lot of
-details about each data structure and its performance which are outlined in other sections of this manual.
+This quickstart guide is meant to provide a very brief exposition to the ideas behind ``neoads``.
+
+There are a lot of details about each data structure and its performance which are outlined in other sections of
+this manual.
 
 So, please, keep reading, if you want to find out more about the ``MemoryManager``, hashing and how it is used by
 ``neoads``, how are operations resolving to CYPHER queries, how it is possible to construct higher level operations

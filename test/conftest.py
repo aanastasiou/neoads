@@ -3,7 +3,6 @@ import os
 import sys
 
 from neomodel import config, db, clear_neo4j_database, change_neo4j_password
-from neo4j.v1 import CypherError
 
 
 def pytest_sessionstart(session):

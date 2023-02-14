@@ -13,15 +13,16 @@ def test_list_objects():
     """
     Tests if MemoryManager's equivalent of `dir()` operates as expected.
     """
+    mm = MemoryManager(connection_uri=neomodel.db.url)
+    objects_in_mem_begin = mm.list_objects()
 
     some_data = [CompositeString(str(random.randint(0, 10000))).save() for i in range(0, 10)]
     # At this point a neomodel.db object has already been prepared by conftest.py. Just initialise a memory manager from
     # that object
-    mm = MemoryManager(connection_uri=neomodel.db.url)
     objects_in_mem = mm.list_objects()
 
     # Run the test
-    assert len(objects_in_mem) == len(some_data)
+    assert (len(objects_in_mem) - len(objects_in_mem_begin)) == len(some_data)
 
     # Clean up
     [an_item.delete() for an_item in some_data]

@@ -3,8 +3,9 @@ Core functionality of neoads.
 
 Provides the basic entities required to represent neoads as well as "hosted" domain objects.
 
-"Hosted" domain objects are those that can be referenced by neoads but those that neoads has no need of knowing their
-internal structure.
+"Hosted" domain objects are those that can be referenced by neoads without knowing anything 
+about their internal structure.
+
 
 :author: Athanasios Anastasiou 
 :date: Jan 2018
@@ -44,10 +45,19 @@ class PersistentElement(neomodel.StructuredNode):
 
 class ElementVariable(PersistentElement):
     """
-    Base type for persistent elements of the types provided by neoads.
+    Base type for all persistent elements within ``neoads``.
 
     A persistent data element has a logical name that is used to refer to it and this name must be unique across a
     database instance.
+
+    This logical name is equivalent to a *"variable name"* .
+
+    :param value: The actual value of the element
+    :type value: Any
+    :param name: The name of the element. This is also implemented as a "Unique" constrain on the Neo4J 
+                 backend (via ``neomodel``)
+    :type name: neomodel.UniqueIdProperty
+
     """
     value = None
 
@@ -63,8 +73,11 @@ class ElementDomain(PersistentElement):
         """
         The hash of an entity is the hash of its property's values.
 
-        NOTE: Obviously, the order the hash is derived by affects its value and this is why the values are sorted by
-        attribute name first.
+        .. note::
+
+            Obviously, the order the hash is derived by affects its value and this is why the values are sorted by 
+            attribute name first.
+
         """
         # return hash(tuple(map(lambda x: x[1], sorted(self.__properties__.items(), key=lambda x: x[0]))))
         return int(hashlib.sha256(str(tuple(map(lambda x: x[1], sorted(self.__properties__.items(), key=lambda x: x[0])))).encode("utf-8")).hexdigest(), base=16)

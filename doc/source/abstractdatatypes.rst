@@ -3,5 +3,5 @@
 Abstract Data Structures
 ========================
 
-.. automodule:: neoads.core
+.. automodule:: neoads.ads
    :members: SetItem, AbstractSet, AbstractMap, DLListItem, AbstractDLList

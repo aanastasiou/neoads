@@ -1,10 +1,11 @@
 """
-Core functionality of neoads.
+Definitions for data types that represent a single number (e.g. 4.56) and 
+a simple date (e.g. 01/01/1970)
 
-Provides the basic entities required to represent neoads as well as "hosted" domain objects.
 
-"Hosted" domain objects are those that can be referenced by neoads but those that neoads has no need of knowing their
-internal structure.
+Simple data types represent values that are single and atomic (for example, 
+a single double precision number).
+
 
 :author: Athanasios Anastasiou 
 :date: Jan 2018
@@ -19,15 +20,11 @@ import datetime
 class VariableSimple(ElementVariable):
     """
     Base type for variables that are of Simple data types.
-
-    Simple data types represent values that are single and atomic (for example, a single double precision number).
     """
 
     def __init__(self, value, name = None):
         """
         Default implementation for the assignment operator
-
-        :param value:
         """
         if name is not None:
             super().__init__(value=value, name=name)
@@ -44,7 +41,12 @@ class SimpleNumber(VariableSimple):
     """
     A typical single number.
 
-    Note: To avoid over complicating things, a neoads "number" is a double precision real number.
+    **Note:** To avoid over complicating things, a neoads "number" is a 
+          double precision real number.
+
+    :param value: A double precision real number
+    :type value: neomodel.FloatProperty
+
     """
     value = neomodel.FloatProperty(index=True)
 
@@ -59,6 +61,13 @@ class SimpleNumber(VariableSimple):
 
 
 class SimpleDate(VariableSimple):
+    """
+    A typical single date.
+
+    :param value: The date that this element represents.
+    :type value: neomodel.DateProperty
+    """
+
     value = neomodel.DateProperty(index=True)
 
     def __init__(self, value, name=None, **kwargs):

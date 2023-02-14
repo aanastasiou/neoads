@@ -3,7 +3,7 @@
 Composite Data Type Variables
 =============================
 
-.. automodule:: neoads.core
+.. automodule:: neoads.composite_array
    :members: CompositeString, CompositeArrayString, CompositeArrayNumber, 
              CompositeArrayDate, CompositeArrayObjectList, CompositeArrayObjectDict, 
              CompositeArrayObjectDataFrame

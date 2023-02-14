@@ -1,10 +1,6 @@
 """
-Core functionality of neoads.
+Definitions for composite data types. These represent values that are composite (e.g. arrays).
 
-Provides the basic entities required to represent neoads as well as "hosted" domain objects.
-
-"Hosted" domain objects are those that can be referenced by neoads but those that neoads has no need of knowing their
-internal structure.
 
 :author: Athanasios Anastasiou 
 :date: Jan 2018
@@ -22,7 +18,8 @@ class VariableComposite(ElementVariable):
     """
     Base type for variables that are of Composite data types.
 
-     Composite data types represent values that are composite (e.g. arrays).
+    ``VariableComposite`` are implemented on top of ``neomodel`` array "properties" (with the exception of
+    ``CompositeString``) and therefore correspond to native Neo4J arrays.
     """
 
     def __init__(self, value, name=None, **kwargs):
@@ -38,8 +35,7 @@ class VariableComposite(ElementVariable):
 
     def clear(self):
         """
-        Clears the array by writing an empty sequence to its value
-        :return:
+        Clears the array by writing an empty sequence to its value.
         """
         self._pre_action_check("clear")
         # Notice here the level at which the query occurs. This method occurs in VariableComposite and is supposed to
@@ -77,6 +73,9 @@ class CompositeString(VariableComposite):
     A typical string.
 
     Strings are represented as composite objects to support indexing naturally.
+
+    :param value: The actual string value
+    :type value: neomodel.StringProperty
     """
     value = neomodel.StringProperty(index=True)
 
@@ -96,6 +95,9 @@ class CompositeString(VariableComposite):
 class CompositeArrayString(VariableComposite):
     """
     A native Neo4j array of strings.
+
+    :param value: An array of strings
+    :type value: neomodel.ArrayProperty
     """
     value = neomodel.ArrayProperty(neomodel.StringProperty())
     
@@ -110,7 +112,8 @@ class CompositeArrayNumber(VariableComposite):
     """
     A native Neo4j array of numbers.
 
-    Note: To avoid over complicating things, a neoads "number" is a double precision real number.
+    :param value: An array of Real numbers.
+    :type value: neomodel.ArrayProperty
     """
     value = neomodel.ArrayProperty(neomodel.FloatProperty())
     
@@ -122,28 +125,35 @@ class CompositeArrayNumber(VariableComposite):
 
     def from_query_IDs(self, query, refresh=True, auto_reset=False):
         """
-        Executes a special type of query with the only purpose to populate the array of numbers with the IDs of the
+        Executes a special type of query to populate the array of numbers with the IDs of the
         entities in the query.
 
         Consequently, the query must have a specific structure. The general pattern of the query is as follows:
 
-        MATCH Array WITH Array [query] WITH Array,collect(id(ListItem)) as ItemIds set Array.value=ItemIds;
+        ``MATCH Array WITH Array [query] WITH Array,collect(id(ListItem)) as ItemIds set Array.value=ItemIds;``
 
-        Where [query] is an INCOMPLETE Cypher MATCH query with at least one named Node that is called "ListItem".
+        Where ``[query]`` is an INCOMPLETE Cypher MATCH query with at least one named Node that is called "ListItem".
         That named node is the node whose id will be catalogued in the list.
 
-        WARNING: The predefined "Array" must be propagated in subsequent withs for it to go all the way to the other
-                 side of the query and finish.
+        .. warning ::
 
-        NOTE:
+            The predefined "Array" must be propagated in subsequent withs for it to go all the way to the other
+            side of the query and finish.
+
+
+        .. note ::
+            
             This functionality is not meant to substitute double linked lists for collections of articles because it
             relies heavily on Node IDs which are subject to change. Instead, this functionality is meant to ASSIST in
             creating Double Linked Lists of articles FROM lists of IDs
 
-        :param query: String, a Cypher Query making specific reference to ListItem.
-        :param refresh: Boolean (True), Whether this action should trigger a refresh or not
+        :param query: A Cypher Query making specific reference to ListItem.
+        :type query: str
+        :param refresh: Whether this action should trigger a refresh or not
+        :type refresh: bool
         :param auto_reset: Whether to clear the list if it is found to be populated
-        :return:
+        :type auto_reset: bool
+        :returns: self
         """
         # TODO: MED, This is another remnant of an "older" way of doing things. With the advent of ArrayObjectBase,
         #       and its descendants, what this function achieved can be simplified even more. So, DLList's corresponding
@@ -168,6 +178,9 @@ class CompositeArrayNumber(VariableComposite):
 class CompositeArrayDate(VariableComposite):
     """
     A native Neo4J array of dates.
+
+    :param value: The actual array value
+    :type value: neomodel.ArrayProperty
     """
     value = neomodel.ArrayProperty(neomodel.DateProperty())
     
@@ -180,14 +193,17 @@ class CompositeArrayDate(VariableComposite):
 
 class CompositeArrayObjectBase(VariableComposite):
     """
-    Represents a query that upon instantiation returns results in some form.
+    Represents *a query* that upon instantiation returns results in a particular form.
 
-    Not to be isntantiated directly by user code.
+    .. warning ::
+    
+        Not to be instantiated directly by user code.
 
-    Note:
-          This data structure stores the actual query that returns the results, NOT the results themselves.
-          For this reason, the results might be different every time the query is executed (because the backend data
-          may have changed).
+    .. note ::
+
+        This data structure stores the actual query that returns the results, NOT the results themselves.
+        For this reason, the results might be different every time the query is executed (because the backend data
+        may have changed).
     """
     # Notice the unique index here: If a verbatim query exists in the database already then just re-use that one.
     value = neomodel.StringProperty(unique_index=True, required=True)
@@ -251,11 +267,14 @@ class CompositeArrayObjectDict(CompositeArrayObjectBase):
     """
     Represents a query that returns results as a Python dict.
 
-    Note:
+    .. note ::
+    
         By convention, the first return value from the query is the key and all others become the value. Therefore,
         "duplicates" (items that are returned but happen to have the same key) are removed.
 
-    WARNING:
+
+    .. warning ::
+
         The functionality of this data type removes duplicates AT THE CLIENT SIDE, NOT AT THE SERVER SIDE.
     """
     def execute(self, params=None, refresh=True):
@@ -272,8 +291,10 @@ class CompositeArrayObjectDataFrame(CompositeArrayObjectBase):
     """
     Represents a query that returns results as a pandas DataFrame.
 
-    Note:
+    .. note ::
+    
         The DataFrame does not have an index and access is through pandas' `iloc`.
+
     """
     def execute(self, params=None, refresh=True):
         if not refresh and self._result is not None:

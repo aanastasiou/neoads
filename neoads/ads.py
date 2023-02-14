@@ -1,14 +1,12 @@
 """
-Core functionality of neoads.
+Definitions for abstract data structures.
 
-Provides the basic entities required to represent neoads as well as "hosted" domain objects.
-
-"Hosted" domain objects are those that can be referenced by neoads but those that neoads has no need of knowing their
-internal structure.
 
 :author: Athanasios Anastasiou 
 :date: Jan 2018
+
 """
+
 import neomodel
 from .core import PersistentElement
 from .composite_array import (VariableComposite, CompositeArrayNumber)
@@ -17,10 +15,11 @@ from . import exception
 
 class CompositeAbstract(VariableComposite):
     """
-    Base class for representing abstract data types.
+    Base class for representing abstract data structures.
 
-    Note:
-        Abstract data types can be of any length (supported by the database) and they can point to ANY system element.
+    .. note ::
+
+        Abstract data structures can be of any length (supported by the database) and they can point to ANY system element.
     """
 
     def __init__(self, name=None, **kwargs):
@@ -69,7 +68,7 @@ class SetItem(AbstractStructItem):
     """
     A struct item that is an element of a set.
 
-    A set item maintains its item's `hash_value` for fast lookups.
+    A set item maintains its item's ``hash_value`` for fast lookups.
     """
     # The hash value is not essential for the data structure but it is essential for insertions and deletions
     # hash_value = neomodel.IntegerProperty(index=True, required=True)
@@ -95,14 +94,15 @@ class AbstractSet(CompositeAbstract):
     """
     A Set of UNIQUE elements.
 
-    WARNING:
+    .. warning ::
+
         Attractive as its functionality might be, the Set lacks functions to populate it with CYPHER queries
         (e.g. from_query). The key problem with that is that the item's hash_value cannot be set consistently (no
         similar function in APOC) at the server side.
 
-    TODO:
-        However, it might be possible to establish a hash-like user procedure in CYPHER at server side which could be
-        invoked by neoads to implement such queries server side too. (With APOC's sha this can definitely be done now)
+    
+    **TODO:** However, it might be possible to establish a hash-like user procedure in CYPHER at server side which could be
+    invoked by neoads to implement such queries server side too. (With APOC's sha this can definitely be done now)
     """
     elements = neomodel.RelationshipTo("SetItem", "SET_ELEMENT")
 
@@ -165,8 +165,10 @@ class AbstractSet(CompositeAbstract):
         """
         Initialises an abstract set from a list of hash, Node ID tuples
 
-        NOTE:
+        .. warning ::
+
             Not to be called directly.
+
 
         :param a_hash_nodeid_list: A list of tuples
         :type a_hash_nodeid_list: list
@@ -214,7 +216,8 @@ class AbstractSet(CompositeAbstract):
         """
         Set equality.
 
-        NOTE:
+        .. note ::
+
             Set equality for Sets of the same length is tested here purely on the basis of identical hashes.
 
         :param other: AbstractSet
@@ -327,6 +330,7 @@ class AbstractSet(CompositeAbstract):
     def __xor__(self, other):
         """
         Set symmetric difference
+
         :param other: The other AbstractSet that participates in the symmetric difference.
         :type other: AbstractSet
         :return: AbstractSet
@@ -390,7 +394,8 @@ class AbstractSet(CompositeAbstract):
         """
         Adds a new element to the set.
 
-        WARNING:
+        .. warning ::
+        
             Not meant to be called directly.
 
         :param an_item: An object that is to be added to the set.
@@ -411,7 +416,11 @@ class AbstractSet(CompositeAbstract):
         """
         Adds an item to the set with a particular hash value.
 
-        Not meant to be called directly. Used by the AbstractMap.
+
+        .. warning ::
+
+            Not meant to be called directly. Used by the AbstractMap.
+
         :param an_item: An object that is to be added to the set
         :type an_item: PersistentElement
         :param a_hash: A hash value
@@ -428,8 +437,12 @@ class AbstractSet(CompositeAbstract):
         """
         Retrieves the value that the set element points to given the set element's hash value.
 
-        NOTE:
+      
+        .. warning ::
+
             Not meant to be called directly. Used by AbstractMap.
+
+
 
         :param a_hash: An object's hash value
         :type a_hash: int
@@ -446,7 +459,8 @@ class AbstractSet(CompositeAbstract):
         """
         Removes an element from the set, given its hash value.
 
-        NOTE:
+        .. warning ::
+
             Not meant to be called directly. Used by AbstractMap.
 
         :param a_hash: An object's hash value
@@ -466,8 +480,9 @@ class AbstractSet(CompositeAbstract):
         """
         Adds an item to the set. Similar to Python's set.add().
 
-        NOTE:
-            The item must be hashable.
+        .. warning ::
+
+            The item **must be hashable**.
 
         :param an_item: An object to be added to the AbstractSet.
         :type an_item: PersistentElement
@@ -505,8 +520,9 @@ class AbstractMap(CompositeAbstract):
     """
     A very simple mapping that maps a hash value (that can be computed by any hashable) to an entity.
 
-    NOTE:
-        Implemented via two AbstractSets, one for the keys and one for the values.
+    .. note ::
+
+        The abstract map is implemented via two ``neoads.AbstractSets``, one for the keys and one for the values.
     """
 
     keys_set = neomodel.RelationshipTo("AbstractSet", "KEYS_SET")
@@ -516,13 +532,15 @@ class AbstractMap(CompositeAbstract):
         """
         Initialises the map.
 
-        NOTE:
+        .. note ::
+
             Because of the way the object hierarchy is set up, an uninitialised set can exist without actual reference
-            to the two AbstractSets it requires to function properly. **BUT**, when the time comes for the map to
+            to the two ``AbstractSets`` it requires to function properly. **BUT**, when the time comes for the map to
             operate it has to ensure that it has its two sets initialised properly.
 
             An AbstractMap maintains links to two anonymous sets. If those links were to be severed, it would be
             possible for those sets to be collected and completely erased by the garbage collector.
+
         """
         new_keys_set = AbstractSet().save()
         new_values_set = AbstractSet().save()
@@ -560,7 +578,8 @@ class AbstractMap(CompositeAbstract):
         """
         Determines if the mapping contains a specific key.
 
-        NOTE:
+        .. note ::
+
             This basically re-uses the IN operator for AbstractSet.
 
         :param item: An object
@@ -596,8 +615,8 @@ class AbstractMap(CompositeAbstract):
         """
         Sets / resets a key to be pointing to a specific value.
 
-        NOTE:
-            `value` should be a PersistentElement that has already been **saved** in the database.
+        .. note ::
+            ``value`` should be a ``PersistentElement`` that has already been **saved** in the database.
             The AbstractSet must have been instantiated properly before any operations are applied to it.
 
         :param key: A `key` object.
@@ -628,9 +647,12 @@ class AbstractMap(CompositeAbstract):
         """
         Instantiates an AbstractMap via a query.
 
-        NOTE:
+        .. note ::
+
             The query must have a specific structure and return two arrays, one for the keys and one for the values.
             For example:
+
+            ::
 
             SimpleNumber(1).save()
             SimpleNumber(2).save()
@@ -645,6 +667,7 @@ class AbstractMap(CompositeAbstract):
             Q.from_keyvalue_node_query("MATCH (a:ElementVariable) WHERE a.value IN [1,2,3] WITH collect(a) AS Keys
             MATCH (b:ElementVariable) WHERE b.value IN ["One","Two","Three"] WITH Keys, collect(b) as Values")
 
+            
             The objects in the array will have to be inflated in to Python, their hash calculated and then used to
             construct the sets.
 
@@ -719,8 +742,10 @@ class AbstractDLList(CompositeAbstract):
     """
     A doubly linked list with indexing.
 
-    NOTE:
-        Although the list is Doubly Linked, only the list's `head` is preserved with the List entry.
+    .. note ::
+
+        Although the list is Doubly Linked, only the list's ``head`` is preserved with the List entry.
+
     """
     head = neomodel.RelationshipTo("DLListItem", "DLL_NXT")
     length = neomodel.IntegerProperty(default=0)
@@ -728,6 +753,7 @@ class AbstractDLList(CompositeAbstract):
     def __len__(self):
         """
         Returns the length of the list.
+
         :return: int
         """
         self._pre_action_check('__len__')
@@ -744,8 +770,10 @@ class AbstractDLList(CompositeAbstract):
         """
         Clears the list.
 
-        NOTE:
+        .. note ::
+
             To delete the list itself, use destroy()
+
         """
         self._pre_action_check('clear')
         nme = self.name
@@ -782,7 +810,8 @@ class AbstractDLList(CompositeAbstract):
         """
         Deletes a specific item from the list.
 
-        NOTE:
+        .. note ::
+
             The item is selected by index and it can be wherever in a list.
 
         :param key: Index to the item in the list to be deleted
@@ -826,7 +855,8 @@ class AbstractDLList(CompositeAbstract):
         subsequent queries. This function returns part of a query that can be concatenated with other lists as part of
         a bigger query.
 
-        NOTE:
+        .. note ::
+
             Collects the values of projected_field from this list into a new, sequential array that is being known
             as projection_known_as.
 
@@ -890,14 +920,21 @@ class AbstractDLList(CompositeAbstract):
         """
         Generates a query that iterates over all items of the list.
 
-        NOTE:
+        .. note ::
+
             This can be used to "trigger" further queries / operations over each item within the list.
 
-        WARNING:
+
+        .. warning ::
+
             These are the ACTUAL ITEMS that the list is holding. If this list is pointing to other lists, those
             lists are not automatically UNWINDED!!!!
 
-        EXAMPLE:
+
+        **EXAMPLE:**
+
+        ::
+
             neomodel.db.cypher_query(list1.iterate_by_query("pubmed")+"MATCH (Author1:Author)-[:AUTHOR]-
                                                             (pubmed_listItemValue)-[:AUTHOR]-(Author2:Author)
                                                             where Author1<>Author2 return count(Author1)")
@@ -1006,17 +1043,23 @@ class AbstractDLList(CompositeAbstract):
         """
         Creates a doubly linked list at server side.
 
-        NOTE:
-            The list's items point to the return result of `query`. The query **MUST** return PersistentElement and be
+        .. note ::
+
+            The list's items point to the return result of ``query``. The query **MUST** return ``PersistentElement`` and be
             a CYPHER READ query.
 
-        WARNING:
+        .. warning ::
+
             At the moment, the way the CYPHER queries that build the list are expressed, they seem to "explode" with
             the number of items returned by from_query(..., query). So use with caution.
 
             If the query returns duplicates, these are retained in the list because a list does not behave like a set.
 
-         EXAMPLE: "MATCH (ListItem:Institute)-[:CITY]-(:City)-[:IN_COUNTRY]-(:Country{countryName:'Australia'})"
+         **EXAMPLE:**
+
+         ::
+
+         "MATCH (ListItem:Institute)-[:CITY]-(:City)-[:IN_COUNTRY]-(:Country{countryName:'Australia'})"
                    with a possible WHERE clause too
 
 
@@ -1066,8 +1109,9 @@ class AbstractDLList(CompositeAbstract):
         """
         Initialises the doubly linked list from a numeric array of node IDs.
 
-        NOTE:
-            This array_of_ids is usually constructed via a call to CompositeArrayNumber.from_query_IDs().
+        .. note ::
+
+            This array_of_ids is usually constructed via a call to ``CompositeArrayNumber.from_query_IDs()``.
             Because of the dangers associated with maintaining IDs for long intervals it is best if these two are
             called in quick succession.
 

@@ -1,10 +1,11 @@
 """
-    Athanasios Anastasiou Mar 2019.
+Establishes the memory manager object.
 
-    Establishes the memory manager object.
+At the moment, the memory manager handles a very limited amount of operations but ultimately, every operation in the
+future will be passing via the ``MemoryManager`` in the form of CYPHER (or augmented CYPHER) queries.
 
-    At the moment, the memory manager handles a very limited amount of operations but ultimately, every operation in the
-    future will be passing via the MemoryManager in the form of CYPHER (or augmented CYPHER) queries.
+:author: Athanasios Anastasiou
+:date: Mar 2019
 """
 
 import neomodel
@@ -17,17 +18,20 @@ class MemoryManager:
     """
     A memory manager object that handles abstract data structure CRUD operations.
 
-    NOTE:
+    .. note ::
+
         This should be thought of like a memory context object within which, all neoads variables live. It is basically
         bounded only by the capacity of the server and network latencies.
+
     """
     def __init__(self, connection_uri=None, uname=None, pword=None, host="localhost", port=7687):
         """
         Initialises the manager.
 
-        NOTE:
+        .. note ::
+
             If none of the expected configuration parameters are provided, the constructor will try
-            to initialise the object via the connection_uri environment variable. If that fails, it will
+            to initialise the object via the ``connection_uri`` environment variable. If that fails, it will
             try to initialise it via the username and password data and if that fails, then it will
             give up with an appropriate exception.
 
@@ -64,9 +68,12 @@ class MemoryManager:
         """
         Obtains a list of top level objects from the server.
 
-        NOTE:
+        .. note ::
+
             Similar in functionality to a dir
-        :return: list of str
+
+
+        :return: list[str]
         """
         object_names, _ = neomodel.db.cypher_query("MATCH (anObject:ElementVariable) return anObject.name")
         object_names = [a_name[0] for a_name in object_names]
@@ -98,6 +105,7 @@ class MemoryManager:
             DLListItems that are not bound to a list
             SetElements that are not linked to a set
             Unnamed elements that are not refernced by any other data structure
+
         :return:
         """
         # TODO: MED, Garbage collection could become the responsibility of each type and have separate functions that
@@ -131,8 +139,9 @@ class MemoryManager:
         :type deep: bool
         :return: dict
 
-        NOTE:
-            Reports counts of:
+        .. note ::
+            
+            * Reports counts of:
                 * "Stray" data structure items
                 * "Stray" items WITH a "value" attached to them
                 * "Stray" items possibly recoverable either as Lists or Sets.
@@ -140,15 +149,16 @@ class MemoryManager:
                 * "Unnamed" variables
                 * "RECOVERED_[]_UID" named entities
 
-            Tries to recover:
+            * Tries to recover:
                 * Sets (As RECOVERED_[flat_datetime]_UID)
                 * Lists (Named similarly to the way Sets are named)
 
-            Tries to pair:
+            * Tries to pair:
                 * Stray struct items with a given hash, to items that have that hash in the database.
 
-            Erases:
+            * Erases:
                 * Stray unrecoverable struct items.
+
         """
         if recover:
             # Recovers Sets (As RECOVERED_[flat_datetime]_UID)

@@ -270,7 +270,7 @@ To do that:
     my_set.destroy()
 
 For much more detailed information about working with ``neoads.AbstractSet`` please see
-:ref:`elsewhere in the documentation <_compositedatatypes>`.
+:ref:`elsewhere in the documentation <compositedatatypes>`.
 
 
 Working with ``AbstractMap``

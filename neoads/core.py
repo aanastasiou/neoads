@@ -20,13 +20,13 @@ import pandas
 
 class PersistentElement(neomodel.StructuredNode):
     """
-    Base type for all entities that are persistent.
+    Base type for all entities that are persistent via ``neoads``.
     """
     def _neoads_hash(self):
         """
-        Returns a hash for the entity it represents if it is hashable.
+        Returns a hash for the entity it represents (if it is hashable).
         """
-        raise TypeError("unhashable type {}".format(self.__class__.__name__))
+        raise TypeError(f"Unhashable type {self.__class__.__name__}")
 
     def _pre_action_check(self, action):
         """
@@ -37,9 +37,9 @@ class PersistentElement(neomodel.StructuredNode):
             super()._pre_action_check(action)
         except ValueError as ve:
             if "on deleted node" in ve.args[0]:
-                raise exception.ObjectDeletedError("Operation {} attempted on deleted object".format(action))
+                raise exception.ObjectDeletedError(f"Operation {action} attempted on deleted object")
             if "on unsaved node" in ve.args[0]:
-                raise exception.ObjectUnsavedError("Operation {} attempted on unsaved object".format(action))
+                raise exception.ObjectUnsavedError(f"Operation {action} attempted on unsaved object")
 
 
 class ElementVariable(PersistentElement):
@@ -104,7 +104,7 @@ class SimpleNumber(VariableSimple):
 
     def __init__(self, value, name=None):
         if not isinstance(value, (float, int)):
-            raise TypeError("SimpleNumber initialisation expects int or float received {}".format(type(value)))
+            raise TypeError(f"SimpleNumber initialisation expects int or float received {type(value)}")
         super().__init__(value=float(value), name=name)
 
     def _neoads_hash(self):
@@ -117,7 +117,7 @@ class SimpleDate(VariableSimple):
 
     def __init__(self, value, name=None, **kwargs):
         if not isinstance(value, datetime.date):
-            raise TypeError("SimpleDate initialisation expects datetime.date received {}".format(type(value)))
+            raise TypeError(f"SimpleDate initialisation expects datetime.date received {type(value)}")
         super().__init__(value=value, name=name, **kwargs)
 
     def _neoads_hash(self):
@@ -151,8 +151,7 @@ class VariableComposite(ElementVariable):
         self._pre_action_check("clear")
         # Notice here the level at which the query occurs. This method occurs in VariableComposite and is supposed to
         # apply to all descendants. At the CYPHER level, this is applied via the query labels.
-        self.cypher("MATCH (array:{labels}{{name:'{array_name}'}}) SET array.value=[]".format(labels=":".join(
-                    self.labels()), array_name=self.name))
+        self.cypher(f"MATCH (array:{':'.join(self.labels())}{{name:'{self.name}'}}) SET array.value=[]")
         # After applying the clear operation, perform a neomodel::refresh to update the status of the object.
         self.refresh()
 
@@ -162,14 +161,14 @@ class VariableComposite(ElementVariable):
         if key>=0 and key<len(self.value):
             return self.value[key]
         else:
-            raise IndexError("{} index out of range".format(self.__class__.__name__))
+            raise IndexError(f"{self.__class__.__name__} index out of range")
             
     def __setitem__(self, key, value):
         self._pre_action_check('__setitem__')
         if key>=0 and key<len(self.value):
             self.value[key] = value
         else:
-            raise IndexError("{} assignment index out of range".format(self.__class__.__name__))
+            raise IndexError(f"{self.__class__.__name__} assignment index out of range")
         return self  
         
     def __len__(self):
@@ -190,7 +189,7 @@ class CompositeString(VariableComposite):
 
     def __init__(self, value, name=None, **kwargs):
         if not isinstance(value, str):
-            raise TypeError("CompositeString initialisation expects str received {}".format(type(value)))
+            raise TypeError(f"CompositeString initialisation expects str received {type(value)}")
         super().__init__(value=value, name=name, **kwargs)
     
     def _neoads_hash(self):
@@ -211,7 +210,7 @@ class CompositeArrayString(VariableComposite):
         if isinstance(value, str):
             return super().__setitem__(key,value)
         else:
-            raise TypeError("CompositeArrayString assignment expects str, received {}".format(type(value)))
+            raise TypeError(f"CompositeArrayString assignment expects str, received {type(value)}")
 
 
 class CompositeArrayNumber(VariableComposite):
@@ -226,7 +225,7 @@ class CompositeArrayNumber(VariableComposite):
         if isinstance(value, float) or isinstance(value, int):
             return super().__setitem__(key, value)
         else:
-            raise TypeError("CompositeArrayNumber assignment expects float received {}".format(type(value)))
+            raise TypeError(f"CompositeArrayNumber assignment expects float received {type(value)}")
 
     def from_query_IDs(self, query, refresh=True, auto_reset=False):
         """
@@ -261,12 +260,11 @@ class CompositeArrayNumber(VariableComposite):
         if auto_reset:
             self.clear()
         elif len(self)>0:
-            raise exception.ContainerNotEmpty("Attempted to reset non-empty CompositeArrayNumber {}".format(self.name))
+            raise exception.ContainerNotEmpty(f"Attempted to reset non-empty CompositeArrayNumber {self.name}")
 
-        self.cypher("MATCH (array:{labels}{{name:'{name}'}}) "
-                    "WITH array {match_query} "
-                    "WITH array, collect(distinct id(ListItem)) AS item_ids SET array.value=item_ids".format(
-                    labels=":".join(self.labels()), name=self.name, match_query=query))
+        self.cypher(f"MATCH (array:{':'.join(self.labels())}{{name:'{self.name}'}}) "
+                    f"WITH array {query} "
+                    f"WITH array, collect(distinct id(ListItem)) AS item_ids SET array.value=item_ids")
 
         if refresh:
             self.refresh()
@@ -284,7 +282,7 @@ class CompositeArrayDate(VariableComposite):
         if isinstance(value, datetime.date):
             return super().__setitem__(key,value)
         else:
-            raise TypeError("CompositeArrayDate assignment expected datetime received {}".format(type(value)))
+            raise TypeError(f"CompositeArrayDate assignment expected datetime received {type(value)}")
 
 
 class CompositeArrayObjectBase(VariableComposite):
@@ -324,7 +322,7 @@ class CompositeArrayObjectBase(VariableComposite):
             # If the return is a pandas dataframe then noCasting is ignored
             self._result = pandas.DataFrame(columns=attr, data=items, index=None)
         else:
-            raise NotImplementedError("{} return value requested. Currently supported are (pandas,dict,list)")
+            raise NotImplementedError(f"{self._result} return value requested. Currently supported are (pandas,dict,list)")
 
         return self._result
 
@@ -337,8 +335,8 @@ class CompositeArrayObjectBase(VariableComposite):
         :return: Query result value at index.
         """
         if self._result is None:
-            raise exception.QueryNotExecuted("Item {} was requested from a query that "
-                                             "has not yet been executed.".format(item))
+            raise exception.QueryNotExecuted(f"Item {item} was requested from a query that "
+                                             "has not yet been executed.")
         return self._result[item]
 
 
@@ -417,7 +415,7 @@ class CompositeAbstract(VariableComposite):
             super().__init__(None, **kwargs)
 
     def __len__(self):
-        raise NotImplementedError("len() not implemented on {}".format(self.__class__.__name__))
+        raise NotImplementedError(f"len() not implemented on {self.__class__.__name__}")
 
     def delete(self):
         """
@@ -427,7 +425,7 @@ class CompositeAbstract(VariableComposite):
         """
         self._pre_action_check("delete")
         if self.__len__() > 0:
-            raise exception.ContainerNotEmpty("Attempted to delete non empty container {} of type {}.".format(self.name, self.__class__.__name__))
+            raise exception.ContainerNotEmpty(f"Attempted to delete non empty container {self.name} of type {self.__class__.__name__}.")
         else:
             super().delete()
 
@@ -465,8 +463,8 @@ class SetItem(AbstractStructItem):
         """
         if isinstance(hash_value, int):
             # Convert it to a string
-            hash_value = "{:x}".format(hash_value)
-        super().__init__(hash_value=hash_value, **kwargs)
+            hash_value = f"{hash_value:x}"
+            super().__init__(hash_value=hash_value, **kwargs)
 
 
 class AbstractSet(CompositeAbstract):
@@ -496,24 +494,26 @@ class AbstractSet(CompositeAbstract):
 
         # Check that an_abstractSet is of the right type
         if not issubclass(type(an_abstractSet), AbstractSet):
-            raise TypeError("from_abstractset expects 'AbstractSet' received {}".format(type(an_abstractSet)))
+            raise TypeError(f"from_abstractset expects 'AbstractSet' received {type(an_abstractSet)}")
 
         # Empty the current values
         if auto_reset:
             self.clear()
         elif len(self)>0:
-            raise exception.ContainerNotEmpty("Attempted to reset non empty AbstractSet {}".format(self.name))
+            raise exception.ContainerNotEmpty(f"Attempted to reset non empty AbstractSet {self.name}")
 
-        self.cypher("MATCH (this_set:{this_set_labels}{{name:'{this_set_name}'}}), "
-                    "(other_set:{other_set_labels}{{name:'{other_set_name}'}})-[:SET_ELEMENT]->"
+        this_set_labels = ":".join(self.labels())
+        this_set_name = self.name
+        other_set_labels = ":".join(an_abstractSet.labels())
+        other_set_name = an_abstractSet.name
+
+        self.cypher(f"MATCH (this_set:{this_set_labels}{{name:'{this_set_name}'}}), "
+                    f"(other_set:{other_set_labels}{{name:'{other_set_name}'}})-[:SET_ELEMENT]->"
                     "(an_element:AbstractStructItem:SetItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->"
                     "(an_element_value) CREATE (this_set)-[:SET_ELEMENT]->"
-                    "(:AbstractStructItem:SetItem{{hash_value:an_element.hash_value}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->"
-                    "(an_element_value)".format(
-                        **{"this_set_labels": ":".join(self.labels()),
-                           "this_set_name": self.name,
-                           "other_set_labels": ":".join(an_abstractSet.labels()),
-                           "other_set_name": an_abstractSet.name}))
+                    "(:AbstractStructItem:SetItem{hash_value:an_element.hash_value})-[:ABSTRACT_STRUCT_ITEM_VALUE]->"
+                    "(an_element_value)")
+
         self.refresh()
         return self
 
@@ -555,25 +555,26 @@ class AbstractSet(CompositeAbstract):
 
         # Check that a_hash_nodeid_list is a python list
         if not isinstance(a_hash_nodeid_list, list):
-            raise TypeError("from_python expects 'list' received {}".format(type(a_hash_nodeid_list)))
+            raise TypeError(f"from_python expects 'list' received {type(a_hash_nodeid_list)}")
 
         # Empty the current values
         if auto_reset:
             self.clear()
         elif len(self)>0:
-            raise exception.ContainerNotEmpty("Attempted to reset non empty AbstractSet {}".format(self.name))
+            raise exception.ContainerNotEmpty(f"Attempted to reset non empty AbstractSet {self.name}")
 
         #self.cypher("WITH {the_hash_nodeid_list} AS hash_nodeid_list UNWIND hash_nodeid_list AS hash_nodeid_item MERGE (a_set:AbstractSet{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(a_set_element:AbstractStructItem:setElement{{hash_value:hash_nodeid_list[0]}}) ON CREATE MATCH (a_value_node) where id(a_value_node)=hash_node_list[1] CREATE (a_set_element)-[:ABSTRACT_STRUCT_VALUE]->(a_value_node) ON MATCH MATCH (a_set_element:setElement)-[r:ABSTRACT_STRUCT_VALUE]->(some_node) detach delete r MATCH (a_value_node) where id(a_value_node)=hash_node_list[1] CREATE (a_set_element)-[:ABSTRACT_STRUCT_VALUE]->(a_value_node)".format(**{"the_hash_nodeid_list":str(a_hash_nodeid_list).replace("(","[").replace(")","]"),"this_set_name":self.name}))
         # TODO: HIGH Turn the static labels to dynamic ones
-        self.cypher("MATCH (a_set:AbstractSet{{name:'{this_set_name}'}}) "
-                    "WITH a_set,{the_hash_nodeid_list} AS hash_nodeid_list "
+        the_hash_nodeid_list = str(a_hash_nodeid_list).replace("(", "[").replace(")", "]")
+        this_set_name = self.name
+
+        self.cypher(f"MATCH (a_set:AbstractSet{{name:'{this_set_name}'}}) "
+                    f"WITH a_set,{the_hash_nodeid_list} AS hash_nodeid_list "
                     "UNWIND hash_nodeid_list AS hash_nodeid_item "
                     "MATCH (a_value_node) WHERE id(a_value_node)=hash_nodeid_item[1] "
                     "CREATE (a_set)-[:SET_ELEMENT]->"
-                    "(a_set_element:AbstractStructItem:SetItem{{hash_value:hash_nodeid_item[0]}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->"
-                    "(a_value_node)".format(
-                        **{"the_hash_nodeid_list": str(a_hash_nodeid_list).replace("(", "[").replace(")", "]"),
-                           "this_set_name": self.name}))
+                    "(a_set_element:AbstractStructItem:SetItem{hash_value:hash_nodeid_item[0]})-[:ABSTRACT_STRUCT_ITEM_VALUE]->"
+                    "(a_value_node)")
         return self
 
     def __len__(self):
@@ -596,7 +597,7 @@ class AbstractSet(CompositeAbstract):
         :return: bool
         """
         if not type(other) is AbstractSet:
-            raise TypeError("Unsupported operand type(s) for ==: '{}' and '{}'".format(type(self), type(other)))
+            raise TypeError(f"Unsupported operand type(s) for ==: '{type(self)}' and '{type(other)}'")
 
         self._pre_action_check("__eq__")
         other._pre_action_check("__eq__")
@@ -605,12 +606,14 @@ class AbstractSet(CompositeAbstract):
         if self.__len__() != other.__len__():
             return False
 
-        is_equal, _ = self.cypher("MATCH (:AbstractSet{{name:'{nme_left}'}})-[:SET_ELEMENT]->(u:SetItem) "
+        nme_left = self.name
+        nme_right = other.name
+
+        is_equal, _ = self.cypher(f"MATCH (:AbstractSet{{name:'{nme_left}'}})-[:SET_ELEMENT]->(u:SetItem) "
                                   "WITH u.hash_value AS u_hash ORDER BY u_hash "
-                                  "MATCH (:AbstractSet{{name:'{nme_right}'}})-[:SET_ELEMENT]->(v:SetItem) "
+                                  f"MATCH (:AbstractSet{{name:'{nme_right}'}})-[:SET_ELEMENT]->(v:SetItem) "
                                   "WITH collect(u_hash) AS u_hash_array, v.hash_value AS v_hash ORDER BY v_hash "
-                                  "RETURN u_hash_array=collect(v_hash)"
-                                  .format(nme_left=self.name, nme_right=other.name))
+                                  "RETURN u_hash_array=collect(v_hash)")
         # Alternatively, to push even the length check to the server, the query could be changed slightly to first form
         # BOTH arrays and then test them for equality and length when they are both formed. (Otherwise it leads to
         # re-evaluation and it is not efficient. But that would still mean that a full check would have to run even if
@@ -631,7 +634,7 @@ class AbstractSet(CompositeAbstract):
         :return: AbstractSet
         """
         if not type(other) is AbstractSet:
-            raise TypeError("Unsupported operand type(s) for |: '{}' and '{}'".format(type(self),type(other)))
+            raise TypeError(f"Unsupported operand type(s) for |: '{type(self)}' and '{type(other)}'")
 
         self._pre_action_check("__or__")
         other._pre_action_check("__or__")
@@ -640,12 +643,15 @@ class AbstractSet(CompositeAbstract):
             new_set.from_abstractset(other, auto_reset=True)
         else:
             new_set.from_abstractset(self, auto_reset=True)
+
+        this_set_name = new_set.name
+        other_set_name = other.name
         # TODO: HIGH, Turn static labels to dynamic ones
-        self.cypher("MATCH (this_set:AbstractSet{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(this_set_item:AbstractStructItem) "
+        self.cypher(f"MATCH (this_set:AbstractSet{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(this_set_item:AbstractStructItem) "
                     "WITH this_set,COLLECT(this_set_item.hash_value) AS this_set_hash_nums "
-                    "MATCH (other_set:AbstractSet{{name:'{other_set_name}'}})-[:SET_ELEMENT]->(other_set_item:AbstractStructItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value_node) "
+                    f"MATCH (other_set:AbstractSet{{name:'{other_set_name}'}})-[:SET_ELEMENT]->(other_set_item:AbstractStructItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value_node) "
                     "WHERE NOT other_set_item.hash_value IN this_set_hash_nums "
-                    "CREATE (this_set)-[:SET_ELEMENT]->(:AbstractStructItem:SetItem{{hash_value:other_set_item.hash_value}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value_node);".format(**{"this_set_name":new_set.name,"other_set_name":other.name}))
+                    "CREATE (this_set)-[:SET_ELEMENT]->(:AbstractStructItem:SetItem{hash_value:other_set_item.hash_value})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value_node);")
         new_set.refresh()
         return new_set
 
@@ -658,13 +664,16 @@ class AbstractSet(CompositeAbstract):
         :return: AbstractSet
         """
         if not type(other) is AbstractSet:
-            raise TypeError("Unsupported operand type(s) for &: '{}' and '{}'".format(type(self),type(other)))
+            raise TypeError(f"Unsupported operand type(s) for &: '{type(self)}' and '{type(other)}'")
 
         self._pre_action_check("__and__")
         other._pre_action_check("__and__")
         new_set = AbstractSet().save()
+        this_set_name = self.name
+        other_set_name = other.name
+        new_set_name = new_set.name
         # TODO; HIGH, Turn static labels to dynamic ones
-        self.cypher("MATCH (this_set:AbstractSet{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(an_element:AbstractStructItem:SetItem) WITH COLLECT(an_element.hash_value) as this_set_hash_values MATCH (other_set:AbstractSet{{name:'{other_set_name}'}})-[:SET_ELEMENT]->(another_element:AbstractStructItem:SetItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_set_value) WHERE another_element.hash_value IN this_set_hash_values WITH another_element,a_set_value MATCH (new_set:AbstractSet{{name:'{new_set_name}'}}) CREATE (new_set)-[:SET_ELEMENT]->(:AbstractStructItem:SetItem{{hash_value:another_element.hash_value}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_set_value)".format(**{"this_set_name":self.name, "other_set_name":other.name,"new_set_name":new_set.name}))
+        self.cypher(f"MATCH (this_set:AbstractSet{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(an_element:AbstractStructItem:SetItem) WITH COLLECT(an_element.hash_value) as this_set_hash_values MATCH (other_set:AbstractSet{{name:'{other_set_name}'}})-[:SET_ELEMENT]->(another_element:AbstractStructItem:SetItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_set_value) WHERE another_element.hash_value IN this_set_hash_values WITH another_element,a_set_value MATCH (new_set:AbstractSet{{name:'{new_set_name}'}}) CREATE (new_set)-[:SET_ELEMENT]->(:AbstractStructItem:SetItem{{hash_value:another_element.hash_value}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_set_value)")
         new_set.refresh()
         return new_set
 
@@ -677,13 +686,17 @@ class AbstractSet(CompositeAbstract):
         :return: AbstractSet
         """
         if not type(other) is AbstractSet:
-            raise TypeError("Unsupported operand type(s) for -: '{}' and '{}'".format(type(self),type(other)))
+            raise TypeError(f"Unsupported operand type(s) for -: '{type(self)}' and '{type(other)}'")
 
         self._pre_action_check("__sub__")
         other._pre_action_check("__sub__")
         new_set = AbstractSet().save()
+
+        other_set_name = other.name
+        this_set_name = self.name
+        new_set_name = new_set.name
         # TODO; HIGH, Turn static labels to dynamic ones
-        self.cypher("MATCH (other_set:AbstractSet{{name:'{other_set_name}'}})-[:SET_ELEMENT]->(other_element:AbstractStructItem:SetItem) WITH COLLECT(other_element.hash_value) AS other_set_hash_values MATCH (this_set:AbstractSet{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(this_element:AbstractStructItem:SetItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value) WHERE NOT this_element.hash_value IN other_set_hash_values WITH this_element, a_value MATCH (new_set:AbstractSet{{name:'{new_set_name}'}}) CREATE (new_set)-[:SET_ELEMENT]->(:AbstractStructItem:SetItem{{hash_value:this_element.hash_value}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value)".format(**{"other_set_name":other.name,"this_set_name":self.name,"new_set_name":new_set.name}))
+        self.cypher(f"MATCH (other_set:AbstractSet{{name:'{other_set_name}'}})-[:SET_ELEMENT]->(other_element:AbstractStructItem:SetItem) WITH COLLECT(other_element.hash_value) AS other_set_hash_values MATCH (this_set:AbstractSet{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(this_element:AbstractStructItem:SetItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value) WHERE NOT this_element.hash_value IN other_set_hash_values WITH this_element, a_value MATCH (new_set:AbstractSet{{name:'{new_set_name}'}}) CREATE (new_set)-[:SET_ELEMENT]->(:AbstractStructItem:SetItem{{hash_value:this_element.hash_value}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value)")
         new_set.refresh()
         return new_set
 
@@ -695,18 +708,28 @@ class AbstractSet(CompositeAbstract):
         :return: AbstractSet
         """
         if not type(other) is AbstractSet:
-            raise TypeError("Unsupported operand type(s) for ^: '{}' and '{}'".format(type(self), type(other)))
+            raise TypeError(f"Unsupported operand type(s) for ^: '{type(self)}' and '{type(other)}'")
 
         self._pre_action_check("__xor__")
         other._pre_action_check("__xor__")
         new_set = AbstractSet().save()
+
+        other_set_name = other.name
+        this_set_name = self.name
+        new_set_name = new_set.name
+
         # Symmetric difference implemented as two difference queries here (A-B)|(B-A)
-        # A-B
+        # A-B        
         # TODO; HIGH, Turn static labels to dynamic ones
-        self.cypher("MATCH (other_set:AbstractSet{{name:'{other_set_name}'}})-[:SET_ELEMENT]->(other_element:AbstractStructItem:SetItem) WITH COLLECT(other_element.hash_value) AS other_set_hash_values MATCH (this_set:AbstractSet{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(this_element:AbstractStructItem:SetItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value) WHERE NOT this_element.hash_value IN other_set_hash_values WITH this_element, a_value MATCH (new_set:AbstractSet{{name:'{new_set_name}'}}) CREATE (new_set)-[:SET_ELEMENT]->(:AbstractStructItem:SetItem{{hash_value:this_element.hash_value}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value)".format(**{"other_set_name":other.name,"this_set_name":self.name,"new_set_name":new_set.name}))
+        self.cypher(f"MATCH (other_set:AbstractSet{{name:'{other_set_name}'}})-[:SET_ELEMENT]->(other_element:AbstractStructItem:SetItem) WITH COLLECT(other_element.hash_value) AS other_set_hash_values MATCH (this_set:AbstractSet{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(this_element:AbstractStructItem:SetItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value) WHERE NOT this_element.hash_value IN other_set_hash_values WITH this_element, a_value MATCH (new_set:AbstractSet{{name:'{new_set_name}'}}) CREATE (new_set)-[:SET_ELEMENT]->(:AbstractStructItem:SetItem{{hash_value:this_element.hash_value}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value)")
+
+        other_set_name = self.name
+        this_set_name = other.name
+
         # B-A
         # TODO; HIGH, Turn static labels to dynamic ones
-        self.cypher("MATCH (other_set:AbstractSet{{name:'{other_set_name}'}})-[:SET_ELEMENT]->(other_element:AbstractStructItem:SetItem) WITH COLLECT(other_element.hash_value) as other_set_hash_values MATCH (this_set:AbstractSet{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(this_element:AbstractStructItem:SetItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value) WHERE NOT this_element.hash_value IN other_set_hash_values WITH this_element, a_value MATCH (new_set:AbstractSet{{name:'{new_set_name}'}}) CREATE (new_set)-[:SET_ELEMENT]->(:AbstractStructItem:SetItem{{hash_value:this_element.hash_value}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value)".format(**{"other_set_name":self.name,"this_set_name":other.name,"new_set_name":new_set.name}))
+        self.cypher(f"MATCH (other_set:AbstractSet{{name:'{other_set_name}'}})-[:SET_ELEMENT]->(other_element:AbstractStructItem:SetItem) WITH COLLECT(other_element.hash_value) as other_set_hash_values MATCH (this_set:AbstractSet{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(this_element:AbstractStructItem:SetItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value) WHERE NOT this_element.hash_value IN other_set_hash_values WITH this_element, a_value MATCH (new_set:AbstractSet{{name:'{new_set_name}'}}) CREATE (new_set)-[:SET_ELEMENT]->(:AbstractStructItem:SetItem{{hash_value:this_element.hash_value}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value)")
+        
         # The queries operate on the same "new_set"
         new_set.refresh()
         return new_set
@@ -720,9 +743,12 @@ class AbstractSet(CompositeAbstract):
         :return: bool
         """
         # self._pre_action_check("delete")
+        nme = self.name
+        itm_hash = a_hash
+
         # TODO; HIGH, Turn static labels to dynamic ones
         # NOTE: Hash operations need '{itm_hash:x}' because hash is a string
-        return len(self.cypher("MATCH (a_set:AbstractSet{{name:'{nme}'}})-[:SET_ELEMENT]->(an_element:SetItem) WHERE an_element.hash_value='{itm_hash:x}' RETURN an_element".format(**{"nme":self.name, "itm_hash":a_hash}))[0]) > 0
+        return len(self.cypher(f"MATCH (a_set:AbstractSet{{name:'{nme}'}})-[:SET_ELEMENT]->(an_element:SetItem) WHERE an_element.hash_value='{itm_hash:x}' RETURN an_element")[0]) > 0
 
     def __contains__(self, an_item):
         """
@@ -769,7 +795,7 @@ class AbstractSet(CompositeAbstract):
         :return:
         """
         if not isinstance(an_item, PersistentElement):
-            raise TypeError("AbstractSet.add_with_hash() assignment expected PersistentElement, received {}".format(type(an_item)))
+            raise TypeError(f"AbstractSet.add_with_hash() assignment expected PersistentElement, received {type(an_item)}")
         # Get the hash of the key
         if not self.contains_hash(a_hash):
             self._add_element(an_item, a_hash)
@@ -786,9 +812,11 @@ class AbstractSet(CompositeAbstract):
         :return: PersistentElement
         """
         if self.contains_hash(a_hash):
+            nme = self.name
+            itm_hash = a_hash
             # TODO; HIGH, Turn static labels to dynamic ones
-            return self.cypher("MATCH (a_set:AbstractSet{{name:'{nme}'}})-[:SET_ELEMENT]->(an_element:SetItem) WHERE an_element.hash_value='{itm_hash:x}' return an_element".format(**{"nme":self.name,"itm_hash":a_hash}))[0][0]
-        raise KeyError("AbstractSet does not contain item with hash {:x}".format(a_hash))
+            return self.cypher(f"MATCH (a_set:AbstractSet{{name:'{nme}'}})-[:SET_ELEMENT]->(an_element:SetItem) WHERE an_element.hash_value='{itm_hash:x}' return an_element")[0][0]
+        raise KeyError(f"AbstractSet does not contain item with hash {a_hash:x}")
 
     def remove_by_hash(self, a_hash):
         """
@@ -802,10 +830,12 @@ class AbstractSet(CompositeAbstract):
         :return: AbstractSet (self)
         """
         if self.contains_hash(a_hash):
+            nme = self.name
+            itm_hash = a_hash
             # TODO; HIGH, Turn static labels to dynamic ones
-            self.cypher("MATCH (a_set:AbstractSet{{name:'{nme}'}})-[:SET_ELEMENT]->(an_element:SetItem) WHERE an_element.hash_value='{itm_hash:x}' DETACH DELETE an_element".format(**{"nme":self.name,"itm_hash":a_hash}))
+            self.cypher(f"MATCH (a_set:AbstractSet{{name:'{nme}'}})-[:SET_ELEMENT]->(an_element:SetItem) WHERE an_element.hash_value='{itm_hash:x}' DETACH DELETE an_element")
         else:
-            raise KeyError("AbstractSet does not contain item with hash {:x}".format(a_hash))
+            raise KeyError(f"AbstractSet does not contain item with hash {a_hash:x}")
         return self
 
     def add(self, an_item):
@@ -821,7 +851,7 @@ class AbstractSet(CompositeAbstract):
         :return: AbstractSet (self)
         """
         if not isinstance(an_item, PersistentElement):
-            raise TypeError("AbstractSet.add() expected PersistentElement, received {}".format(type(an_item)))
+            raise TypeError(f"AbstractSet.add() expected PersistentElement, received {type(an_item)}")
         # Get the hash of the key
         if not self.__contains__(an_item):
             self._add_element(an_item, an_item._neoads_hash())
@@ -831,9 +861,10 @@ class AbstractSet(CompositeAbstract):
         """
         Clears the set.
         """
-        # TODO; HIGH, Turn static labels to dynamic ones
+        nme = self.name
+        # TODO: HIGH, Turn static labels to dynamic ones
         self._pre_action_check("clear")
-        self.cypher("MATCH (a_set:AbstractSet{{name:'{nme}'}})-[r1:SET_ELEMENT]->(el_item:SetItem)-[r2:ABSTRACT_STRUCT_ITEM_VALUE]->() DETACH DELETE r2,el_item,r1".format(**{"nme": self.name}))
+        self.cypher(f"MATCH (a_set:AbstractSet{{name:'{nme}'}})-[r1:SET_ELEMENT]->(el_item:SetItem)-[r2:ABSTRACT_STRUCT_ITEM_VALUE]->() DETACH DELETE r2,el_item,r1")
 
     def destroy(self):
         """
@@ -935,7 +966,7 @@ class AbstractMap(CompositeAbstract):
         except IndexError:
             self._init_map()
 
-        raise KeyError("{}".format(key))
+        raise KeyError("{key}")
 
     def __setitem__(self, key, value):
         """
@@ -953,7 +984,7 @@ class AbstractMap(CompositeAbstract):
         """
         self._pre_action_check("__setitem__")
         if not isinstance(value, PersistentElement):
-            raise TypeError("AbstractMap assignment expected PersistentElement, received {}".format(type(value)))
+            raise TypeError(f"AbstractMap assignment expected PersistentElement, received {type(value)}")
         try:
             if not key in self.keys_set[0]:
                 self.keys_set[0].add(key)
@@ -1004,7 +1035,7 @@ class AbstractMap(CompositeAbstract):
         if auto_reset or len(self.keys_set)==0:
             self.clear()
         elif len(self)>0:
-            raise exception.ContainerNotEmpty("Attempted to reset non empty AbstractMap {}".format(self.name))
+            raise exception.ContainerNotEmpty(f"Attempted to reset non empty AbstractMap {self.name}")
         # Query the database to retrieve the key/value pairs
         # TODO: HIGH, Must check if a_query contains the variables Key and Value and does not contain a "return"
         keyvalue_list, _ = neomodel.db.cypher_query(a_query, resolve_objects=True)
@@ -1013,7 +1044,7 @@ class AbstractMap(CompositeAbstract):
             raise Exception("Arrays not the same size")
         else:
             # Pre-compute the hash values
-            hash_values = ["{:x}".format(an_object._neoads_hash()) for an_object in keyvalue_list[0][0][0]]
+            hash_values = [f"{an_object._neoads_hash():x}" for an_object in keyvalue_list[0][0][0]]
             # Build the key set
             self.keys_set[0].from_hash_nodeid_list(list(zip(hash_values, [an_object.id for an_object in keyvalue_list[0][0][0]])), auto_reset=True)
             # Build the value set
@@ -1093,8 +1124,9 @@ class AbstractDLList(CompositeAbstract):
             To delete the list itself, use destroy()
         """
         self._pre_action_check('clear')
+        nme = self.name
         # TODO; HIGH, Turn static labels to dynamic ones
-        self.cypher("MATCH (a_list:AbstractDLList{{name:'{nme}'}})-[:DLL_NXT*]-(data_item:DLListItem) DETACH DELETE data_item".format(**{"nme" : self.name}))
+        self.cypher(f"MATCH (a_list:AbstractDLList{{name:'{nme}'}})-[:DLL_NXT*]-(data_item:DLListItem) DETACH DELETE data_item")
         self.length = 0
         self.save()
 
@@ -1113,10 +1145,11 @@ class AbstractDLList(CompositeAbstract):
 
         # Find the DL List item
         if item_index < 0 or item_index > self.length:
-            raise IndexError("Index {idx} out of bounds in a list of length {ln}".format(idx=item_index, ln=self.length))
-        # The 'item+1' is required to offset the hop from the head to the first item.
+            raise IndexError(f"Index {item_index} out of bounds in a list of length {self.length}")
+        #.format(**{"idx": item_index + 1, "self": "{self}"})
+        idx = item_index + 1 # The 'item+1' is required to offset the hop from the head to the first item.
         # TODO; HIGH, Turn static labels to dynamic ones
-        list_record = self.cypher("MATCH (a)-[:DLL_NXT*{idx}]->(b:DLListItem) WHERE ID(a)={self} RETURN b".format(**{"idx": item_index + 1, "self": "{self}"}))
+        list_record = self.cypher(f"MATCH (a)-[:DLL_NXT*{idx}]->(b:DLListItem) WHERE ID(a)={self} RETURN b")
         item_value = DLListItem.inflate(list_record[0][0][0])
         # TODO: HIGH, This must return the actual object
         return item_value.value[0]
@@ -1133,11 +1166,11 @@ class AbstractDLList(CompositeAbstract):
         """
         # TODO: LOW, Reduce code duplication with __getitem__ in retrieving the DL list item.
         if item_index < 0 or item_index > self.length:
-            raise IndexError("Index {idx} out of bounds in a list of length {ln}".format(idx=item_index, ln=self.length))
+            raise IndexError(f"Index {item_index} out of bounds in a list of length {self.length}")
             # The 'item+1' is required to offset the hop from the head to the first item.
         # First of all locate the item ...
         # TODO; HIGH, Turn static labels to dynamic ones
-        list_record = self.cypher("MATCH (a)-[:DLL_NXT*{idx}]->(b:DLListItem) WHERE ID(a)={self} RETURN b".format(**{"idx": item_index + 1, "self": "{self}"}))
+        list_record = self.cypher(f"MATCH (a)-[:DLL_NXT*{item_index + 1}]->(b:DLListItem) WHERE ID(a)={{self}} RETURN b")
         item_object = DLListItem.inflate(list_record[0][0][0])
         # ...disconnect it from the list depending on its location...
         if len(item_object.nxt) == 1 and len(item_object.prv) == 1:
@@ -1189,15 +1222,22 @@ class AbstractDLList(CompositeAbstract):
 
         # If the projected field is none, then the id of the item that the list is holding is to be emitted
         if projected_field is None:
+
+            nme = self.name
+            labels = ":".join(self.labels())
+            listIdentifier = this_list_known_as
+            projectedField = projected_field
+            projectionKnownAs = projection_known_as
+
             # TODO; HIGH, Turn static labels to dynamic ones
-            item_query = "MATCH ({listIdentifier}:{labels}{{name:'{nme}'}}) WITH {listIdentifier} MATCH ({listIdentifier})-[:DLL_NXT*]->({listIdentifier}_listItem:DLListItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->({listIdentifier}_listItemValue) WITH collect(id({listIdentifier}_listItemValue)) as {projectionKnownAs}  ".format(**{"nme" : self.name, "labels": ":".join(self.labels()),"listIdentifier" : this_list_known_as, "projectedField":projected_field, "projectionKnownAs":projection_known_as})
+            item_query = f"MATCH ({listIdentifier}:{labels}{{name:'{nme}'}}) WITH {listIdentifier} MATCH ({listIdentifier})-[:DLL_NXT*]->({listIdentifier}_listItem:DLListItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->({listIdentifier}_listItemValue) WITH collect(id({listIdentifier}_listItemValue)) as {projectionKnownAs}  "
         else:
             # TODO; HIGH, Turn static labels to dynamic ones
-            item_query = "MATCH ({listIdentifier}:{labels}{{name:'{nme}'}}) WITH {listIdentifier} MATCH ({listIdentifier})-[:DLL_NXT*]->({listIdentifier}_listItem:DLListItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->({listIdentifier}_listItemValue) WITH collect({listIdentifier}_listItemValue.{projectedField}) as {projectionKnownAs}  ".format(**{"nme" : self.name,"labels": ":".join(self.labels()), "listIdentifier" : this_list_known_as, "projectedField":projected_field, "projectionKnownAs":projection_known_as})
+            item_query = "MATCH ({listIdentifier}:{labels}{{name:'{nme}'}}) WITH {listIdentifier} MATCH ({listIdentifier})-[:DLL_NXT*]->({listIdentifier}_listItem:DLListItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->({listIdentifier}_listItemValue) WITH collect({listIdentifier}_listItemValue.{projectedField}) as {projectionKnownAs}  "
         # If there are pass through variables add them in the final query
         if pass_through is not None:
             pass_through_items = ",".join(pass_through)
-            modified_with = "WITH {passThroughItems},".format(passThroughItems=pass_through_items)
+            modified_with = f"WITH {pass_through_items},"
             split_query = item_query.split("WITH")
             item_query = split_query[0]+modified_with+split_query[1]+modified_with+split_query[2]
         return item_query
@@ -1212,8 +1252,15 @@ class AbstractDLList(CompositeAbstract):
         :type other_lists: list
         :return: str (CYPHER query fragment)
         """
+        #.format(nme=self.name, list_known_as=this_list_known_as, other_lists=",{}".format(",".join(other_lists)) if other_lists is not None else "")
+        #",{}".format(",".join(other_lists)) if other_lists is not None else "")
+
+        nme = self.name
+        list_known_as = this_list_known_as
+        other_lists = ",{','.join(other_lists) if other_lists is not None else ''}"
+
         # TODO: HIGH, Propagate the lists correctly.
-        return "MATCH (aList:AbstractDLList{{name:'{nme}'}}) WITH aList{other_lists} MATCH (aList)-[:DLL_NXT*]->(:DLListItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(aList_listItemValue) WITH collect(aList_listItemValue) AS {list_known_as}{other_lists}".format(nme=self.name, list_known_as=this_list_known_as, other_lists=",{}".format(",".join(other_lists)) if other_lists is not None else "")
+        return f"MATCH (aList:AbstractDLList{{name:'{nme}'}}) WITH aList{other_lists} MATCH (aList)-[:DLL_NXT*]->(:DLListItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(aList_listItemValue) WITH collect(aList_listItemValue) AS {list_known_as}{other_lists}"
 
     def iterate_by_query(self, this_list_known_as):
         """
@@ -1239,7 +1286,7 @@ class AbstractDLList(CompositeAbstract):
         """
         # TODO: HIGH, Must verify if this match does indeed reach all of the items in the list or it skips the last one.
         # TODO; HIGH, Turn static labels to dynamic ones
-        return "MATCH ({listIdentifier}:AbstractDLList{{name:'{nme}'}}) WITH {listIdentifier} MATCH ({listIdentifier})-[:DLL_NXT*]->({listIdentifier}_listItem:DLListItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->({listIdentifier}_listItemValue) WITH {listIdentifier}_listItemValue ".format(**{"nme" : self.name, "listIdentifier" : this_list_known_as})
+        return f"MATCH ({listIdentifier}:AbstractDLList{{name:'{self.name}'}}) WITH {this_list_known_as} MATCH ({this_list_known_as})-[:DLL_NXT*]->({this_list_known_as}_listItem:DLListItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->({this_list_known_as}_listItemValue) WITH {this_list_known_as}_listItemValue "
 
     def extend_by_merging(self,another_dlList):
         """
@@ -1255,14 +1302,14 @@ class AbstractDLList(CompositeAbstract):
         elif type(another_dlList) is AbstractDLList:
             other_list = another_dlList
         else:
-            raise TypeError("extend_by_merging expected AbstractDLList received {}".format(type(another_dlList)))
+            raise TypeError("extend_by_merging expected AbstractDLList received {type(another_dlList)}")
 
         # If both lists are non-empty, then it is worth going ahead with a full merge
         if len(self) > 0 and len(other_list) > 0:
             # Retrieve the tail STRUCT item of THIS list.
             # The tail struct item has DLL_PRV but no DLL_NXT
             # TODO; HIGH, Turn static labels to dynamic ones
-            this_list_tail_item = DLListItem.inflate(self.cypher("MATCH (a_list:AbstractDLList{{name:'{nme}'}})-[:DLL_NXT*]-(data_item:DLListItem) WHERE NOT (data_item)-[:DLL_NXT]->() RETURN data_item".format(**{"nme" : self.name}))[0][0][0])
+            this_list_tail_item = DLListItem.inflate(self.cypher(f"MATCH (a_list:AbstractDLList{{name:'{self.name}'}})-[:DLL_NXT*]-(data_item:DLListItem) WHERE NOT (data_item)-[:DLL_NXT]->() RETURN data_item")[0][0][0])
             # Retrieve the head STRUCT item of the other list.
             # The head item is readily available
             other_list_head_item = other_list.head[0]
@@ -1272,8 +1319,8 @@ class AbstractDLList(CompositeAbstract):
             # Adjust the length of this list.
             self.length += other_list.length
             # Delete the **ENTRY** of the other list
-            other_list.cypher("MATCH (a:AbstractDLList{{name:'{other_list_nme}'}}) "
-                              "DETACH DELETE a".format(other_list_nme=other_list.name))
+            other_list.cypher(f"MATCH (a:AbstractDLList{{name:'{other_list.name}'}}) "
+                              "DETACH DELETE a")
             # Update this list so that its length gets written back
             self.save()
         else:
@@ -1285,8 +1332,8 @@ class AbstractDLList(CompositeAbstract):
                 self.length = other_list.length
                 # Get rid of the other list's entry ONLY! (delete vs destroy)
                 # Delete the **ENTRY** of the other list
-                other_list.cypher("MATCH (a:AbstractDLList{{name:'{other_list_nme}'}}) "
-                                  "DETACH DELETE a".format(other_list_nme=other_list.name))
+                other_list.cypher(f"MATCH (a:AbstractDLList{{name:'{other_list.name}'}}) "
+                                  "DETACH DELETE a")
             # Update the info of this list
                 self.save()
             else:
@@ -1304,7 +1351,7 @@ class AbstractDLList(CompositeAbstract):
         """
         self._pre_action_check("append")
         if not isinstance(an_element, PersistentElement):
-            raise TypeError("AbstractDLList.append() expected PersistentElement, received {}.".format(type(an_element)))
+            raise TypeError(f"AbstractDLList.append() expected PersistentElement, received {type(an_element)}.")
 
         # Prepare a new list item
         new_list_item = DLListItem().save()
@@ -1320,9 +1367,8 @@ class AbstractDLList(CompositeAbstract):
             # Find the tail
             # TODO: HIGH, Reduce duplication here by adding a _get_tail() to AbstractDLList or alternatively establish
             #       two pointers for faster operation
-            this_list_tail_item = DLListItem.inflate(self.cypher("MATCH (a_list:AbstractDLList{{name:'{nme}'}})-[:DLL_NXT*]-(data_item:DLListItem) "
-                                                                 "WHERE NOT (data_item)-[:DLL_NXT]->() RETURN data_item"
-                                                                 .format(**{"nme" : self.name}))[0][0][0])
+            this_list_tail_item = DLListItem.inflate(self.cypher(f"MATCH (a_list:AbstractDLList{{name:'{self.name}'}})-[:DLL_NXT*]-(data_item:DLListItem) "
+                                                                 "WHERE NOT (data_item)-[:DLL_NXT]->() RETURN data_item")[0][0][0])
             # Connect it to the list (so that the new element becomes the list's tail)
             this_list_tail_item.nxt.connect(new_list_item)
             new_list_item.prv.connect(this_list_tail_item)
@@ -1360,24 +1406,34 @@ class AbstractDLList(CompositeAbstract):
         if auto_reset:
             self.clear()
         elif len(self)>0:
-            raise exception.ContainerNotEmpty("Attempted to reset non empty AbstractDLList {}".format(self.name))
+            raise exception.ContainerNotEmpty(f"Attempted to reset non empty AbstractDLList {self.name}")
 
         dprem_query_fragment = {False:"",True:",count(ListItem) as ListItem_CNT "}
+
         # TODO; HIGH, Turn static labels to dynamic ones
         # Ensure initial conditions on the present list
-        self.cypher("MATCH (a_list:AbstractDLList:CompositeAbstract:VariableComposite:ElementVariable:PersistentElement{{name:'{nme}'}}) SET a_list.length=0".format(**{"nme" : self.name}))
+        self.cypher(f"MATCH (a_list:AbstractDLList:CompositeAbstract:VariableComposite:ElementVariable:PersistentElement{{name:'{self.name}'}}) SET a_list.length=0")
         # Create list items and index them sequentially
+        #.format(**{"nme" : self.name,"match_query":query,"dup_removal":dprem_query_fragment[no_duplicates]})
+        nme = self.name
+        match_query = query
+        dup_removal = dprem_query_fragment[no_duplicates]
+
         # TODO: HIGH, if match_query contains WITH it must be ensured that aList is propagated in that query, otherwise this would fail (see also from_id_array)
-        self.cypher("MATCH (a_list:AbstractDLList:CompositeAbstract:VariableComposite:ElementVariable:PersistentElement{{name:'{nme}'}}) WITH a_list {match_query} WITH a_list, ListItem{dup_removal} CREATE (a_list)-[:TEMP_LINK{{of_list:a_list.name,item_id:a_list.length}}]->(an_item:DLListItem:AbstractStructItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(ListItem) SET a_list.length=a_list.length+1;".format(**{"nme" : self.name,"match_query":query,"dup_removal":dprem_query_fragment[no_duplicates]}))
+        self.cypher(f"MATCH (a_list:AbstractDLList:CompositeAbstract:VariableComposite:ElementVariable:PersistentElement{{name:'{nme}'}}) WITH a_list {match_query} WITH a_list, ListItem{dup_removal} CREATE (a_list)-[:TEMP_LINK{{of_list:a_list.name,item_id:a_list.length}}]->(an_item:DLListItem:AbstractStructItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(ListItem) SET a_list.length=a_list.length+1")
+        
         # Create the double linked list connections
         # Create forwards connections
-        self.cypher("MATCH (a_list:AbstractDLList:CompositeAbstract:VariableComposite:ElementVariable:PersistentElement{{name:'{nme}'}})-[r1:TEMP_LINK{{of_list:a_list.name}}]->(this_item:DLListItem:AbstractStructItem) WHERE r1.item_id<a_list.length WITH a_list,r1,this_item MATCH (a_list)-[r2:TEMP_LINK{{of_list:a_list.name}}]->(next_item:DLListItem:AbstractStructItem) WHERE r2.item_id=r1.item_id+1 CREATE (this_item)-[:DLL_NXT]->(next_item)".format(**{"nme" : self.name}))
+        self.cypher(f"MATCH (a_list:AbstractDLList:CompositeAbstract:VariableComposite:ElementVariable:PersistentElement{{name:'{self.name}'}})-[r1:TEMP_LINK{{of_list:a_list.name}}]->(this_item:DLListItem:AbstractStructItem) WHERE r1.item_id<a_list.length WITH a_list,r1,this_item MATCH (a_list)-[r2:TEMP_LINK{{of_list:a_list.name}}]->(next_item:DLListItem:AbstractStructItem) WHERE r2.item_id=r1.item_id+1 CREATE (this_item)-[:DLL_NXT]->(next_item)")
+
         # Create backwards connections
-        self.cypher("MATCH (a_list:AbstractDLList:CompositeAbstract:VariableComposite:ElementVariable:PersistentElement{{name:'{nme}'}})-[r1:TEMP_LINK{{of_list:a_list.name}}]->(this_item:DLListItem:AbstractStructItem) WHERE r1.item_id>0 WITH a_list,r1,this_item MATCH (a_list)-[r2:TEMP_LINK{{of_list:a_list.name}}]->(previous_item:DLListItem:AbstractStructItem) WHERE r2.item_id=r1.item_id-1 CREATE (this_item)-[:DLL_PRV]->(previous_item)".format(**{"nme" : self.name}))
+        self.cypher(f"MATCH (a_list:AbstractDLList:CompositeAbstract:VariableComposite:ElementVariable:PersistentElement{{name:'{self.name}'}})-[r1:TEMP_LINK{{of_list:a_list.name}}]->(this_item:DLListItem:AbstractStructItem) WHERE r1.item_id>0 WITH a_list,r1,this_item MATCH (a_list)-[r2:TEMP_LINK{{of_list:a_list.name}}]->(previous_item:DLListItem:AbstractStructItem) WHERE r2.item_id=r1.item_id-1 CREATE (this_item)-[:DLL_PRV]->(previous_item)")
+
         # Connect the items to the head of the list
-        self.cypher("MATCH (a_list:AbstractDLList{{name:'{nme}'}})-[r:TEMP_LINK{{of_list:a_list.name,item_id:0}}]->(a_list_item:DLListItem) WITH a_list,a_list_item CREATE (a_list)-[:DLL_NXT]->(a_list_item)".format(**{"nme" : self.name}))
+        self.cypher(f"MATCH (a_list:AbstractDLList{{name:'{self.name}'}})-[r:TEMP_LINK{{of_list:a_list.name,item_id:0}}]->(a_list_item:DLListItem) WITH a_list,a_list_item CREATE (a_list)-[:DLL_NXT]->(a_list_item)")
+
         # Delete the temporary links
-        self.cypher("MATCH (a_list:AbstractDLList{{name:'{nme}'}})-[r:TEMP_LINK{{of_list:a_list.name}}]->(:DLListItem) DELETE r".format(**{"nme" : self.name}))
+        self.cypher(f"MATCH (a_list:AbstractDLList{{name:'{self.name}'}})-[r:TEMP_LINK{{of_list:a_list.name}}]->(:DLListItem) DELETE r")
         # Now, length has changed, so this entity needs to be refreshed
         self.refresh()
         return self
@@ -1399,14 +1455,18 @@ class AbstractDLList(CompositeAbstract):
         if auto_reset:
             self.clear()
         elif len(self)>0:
-            raise exception.ContainerNotEmpty("Attempted to reset non empty AbstractDLList {}".format(self.name))
+            raise exception.ContainerNotEmpty(f"Attempted to reset non empty AbstractDLList {self.name}")
         if isinstance(array_of_ids, str):
             # The parameter is a string, get the actual object
             array_object = CompositeArrayNumber.nodes.get(name=array_of_ids)
         elif isinstance(array_of_ids, CompositeArrayNumber):
             array_object = array_of_ids
         else:
-            raise TypeError("from_id_array expected str or CompositeArrayNumber, received {}".format(type(array_of_ids)))
+            raise TypeError(f"from_id_array expected str or CompositeArrayNumber, received {type(array_of_ids)}")
+
+        labels = ":".join(array_object.labels())
+        name = array_object.name
+
         # Notice here that I am simply re-using from_query
-        self.from_query("MATCH (array:{labels}{{name:'{name}'}}) WITH a_list, array MATCH (ListItem) WHERE id(ListItem) in array.value".format(labels = ":".join(array_object.labels()),name=array_object.name))
+        self.from_query(f"MATCH (array:{labels}{{name:'{name}'}}) WITH a_list, array MATCH (ListItem) WHERE id(ListItem) in array.value")
         return self

@@ -1,3 +1,16 @@
 The ``neoads`` API
 ==================
 
+
+.. toctree ::
+    :maxdepth: 3
+    :caption: Contents:
+
+    api_simpledatatypes
+    api_compositedatatypes
+    api_abstractdatatypes
+    api_memmanager
+
+   
+
+

@@ -52,10 +52,6 @@ Contents
    :maxdepth: 2
 
    quickstart
-   simpledatatypes
-   compositedatatypes
-   abstractdatatypes
-   memmanager
    motivation
    background
    datamodeling

@@ -1,9 +1,13 @@
 import pkg_resources
-from .core import (ElementDomain, CompositeString, CompositeArrayString, CompositeArrayNumber,
-                   CompositeArrayDate, CompositeArrayObjectList, CompositeArrayObjectDict,
-                   CompositeArrayObjectDataFrame, AbstractSet, AbstractMap, AbstractDLList)
+from .core import ElementDomain
 
 from .simple import SimpleNumber, SimpleDate
+
+from .composite_array import (CompositeString, CompositeArrayString, CompositeArrayNumber,
+                              CompositeArrayDate, CompositeArrayObjectList, 
+                              CompositeArrayObjectDict, CompositeArrayObjectDataFrame) 
+
+from .ads import (AbstractSet, AbstractMap, AbstractDLList)
 
 from .exception import ObjectUnsavedError, ObjectDeletedError, ContainerNotEmpty, QueryNotExecuted, MemoryManagerError
 from .memmanager import MemoryManager

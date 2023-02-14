@@ -1149,7 +1149,7 @@ class AbstractDLList(CompositeAbstract):
         #.format(**{"idx": item_index + 1, "self": "{self}"})
         idx = item_index + 1 # The 'item+1' is required to offset the hop from the head to the first item.
         # TODO; HIGH, Turn static labels to dynamic ones
-        list_record = self.cypher(f"MATCH (a)-[:DLL_NXT*{idx}]->(b:DLListItem) WHERE ID(a)={self} RETURN b")
+        list_record = self.cypher(f"MATCH (a)-[:DLL_NXT*{idx}]->(b:DLListItem) WHERE ID(a)=$self RETURN b")
         item_value = DLListItem.inflate(list_record[0][0][0])
         # TODO: HIGH, This must return the actual object
         return item_value.value[0]
@@ -1170,7 +1170,7 @@ class AbstractDLList(CompositeAbstract):
             # The 'item+1' is required to offset the hop from the head to the first item.
         # First of all locate the item ...
         # TODO; HIGH, Turn static labels to dynamic ones
-        list_record = self.cypher(f"MATCH (a)-[:DLL_NXT*{item_index + 1}]->(b:DLListItem) WHERE ID(a)={{self}} RETURN b")
+        list_record = self.cypher(f"MATCH (a)-[:DLL_NXT*{item_index + 1}]->(b:DLListItem) WHERE ID(a)=$self RETURN b")
         item_object = DLListItem.inflate(list_record[0][0][0])
         # ...disconnect it from the list depending on its location...
         if len(item_object.nxt) == 1 and len(item_object.prv) == 1:

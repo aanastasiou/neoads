@@ -3,3 +3,5 @@
 The ``neoads`` Memory Manager
 =============================
 
+.. automodule:: neoads.memmanager
+   :members:

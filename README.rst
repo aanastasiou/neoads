@@ -1,8 +1,15 @@
 Abstract Data Structures over Neo4J
 ===================================
 
-The ``neoads`` module implements AbstractSet, AbstractMap and AbstractDLList (Doubly
-Linked List), over a Neo4J backend.
+The ``neoads`` module implements **interoperable** AbstractSet, AbstractMap and AbstractDLList 
+(Doubly Linked List), over a Neo4J backend.
+
+.. figure:: neoads_banner.png
+   :align: center
+   :width: 1080
+
+   The ``AbstractDLList`` in action.
+
 
 It relies on Neomodel for the OGM functionality and is designed to minimise
 round-trips to the database. In other words, if an operation can be carried out
@@ -13,20 +20,21 @@ back to the backend.
 ``neoads`` data structures are implemented in a way that is:
 
 * Agnostic to domain-specific data model
-    * You can create lists, set or maps of *anything* by making ``ElementDomain`` the
-      root object of your data model.
+    * You can create lists, sets or maps of *anything* in your data model, 
+      simply by making ``ElementDomain`` the root object of your data model.
 
 * Completely transparent to the database backend
-    * The abstraction layer does not enforce a "special" organisation or
-      shortcuts and it is still possible to use the values of a double linked
-      list in your CYPHER queries.
+    * The abstraction layer does not enforce a special organisation or
+      shortcuts and it is still possible to access the data structures in your 
+      CYPHER queries.
 
-The main benefit of ``neoads`` is that it makes it possible to freeze queries as lists
-and feed those lists to further processing without re-running the queries themselves.
+The main benefit of ``neoads`` is that it makes it possible to store query results in
+data structures within the DBMS and feed those data structures to further processing 
+**without** re-running the queries themselves.
 
 In addition to classes that model the Set, Map and Doubly Linked Lists, ``neoads``
 also introduces a number of other entities such as ``CompositeString`` or ``SimpleDate``
-that aim at blurring the line between variables held in local RAM and the
+that aim to blur the line between variables held in local RAM and variables held at the 
 database management system (Neo4j).
 
 The ultimate goal is to be able to make ``neoads`` data structures completely transparent
@@ -61,7 +69,7 @@ Quickstart
 ----------
 This section contains the bear minimum usage examples for a user to get up and
 running with ``neoads``. For more information, please refer to the detailed documentation
-available in ``doc/`` or the section `Class Diagrams & Data Modleling`_.
+available in ``doc/`` or the section **Class Diagrams & Data Modleling**.
 
 Working with Simple Variables (Number, Date)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -70,8 +78,8 @@ Create a simple variable called ``answer``::
 
     u = SimpleNumber(42, "answer").save()
 
-`u` is now a data object that provides full access to the ``SimpleNumber``. To
-recall it from the database management system simply use::
+``u`` is now a data object that provides full access to the ``SimpleNumber``. To
+recall it from the database management system simply use: ::
 
     v = SimpleNumber.nodes.get(name="answer")
 
@@ -81,19 +89,19 @@ argument must be a standard Python ``datetime`` object.
 Working with Composite Variables (Strings, Arrays of Strings, Dates, Numbers)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Create a string variable called `greeting`
-""""""""""""""""""""""""""""""""""""""""""
+Create a string variable called ``greeting``
+""""""""""""""""""""""""""""""""""""""""""""
 ::
 
     u = CompositeString("Hello World", "greeting").save()
 
-In addition to all other operations that can be applied to `u`, it is also possible
+In addition to all other operations that can be applied to ``u``, it is also possible
 to access its contents via::
 
     print(u[2])
 
-Create an Array of strings variable called `greetings`
-""""""""""""""""""""""""""""""""""""""""""""""""""""""
+Create an Array of strings variable called ``greetings``
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 ::
 
     u = CompositeArrayString(["Hello", "Hola", "Χαίρετε"], "greetings").save()
@@ -105,7 +113,7 @@ Working with Abstract Data Structures (Set, Map, Doubly Linked List)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To work with abstract data structures we need to set up a few things first.
-Here are a few strings whose use will become apparent shortly::
+Here are a few strings whose use will become apparent shortly: ::
 
     colours_a = [CompositeString("RED", "A_RED").save(),
                  CompositeString("GREEN", "A_GREEN").save(),
@@ -137,17 +145,17 @@ Or in more complex ways, such as this way of evaluating the symmetric difference
     symm_diff_colour = (colours_a_set - colours_b_set) | (colours_b_set-colours_a_set)
 
 
-It is worth noting there that all operators used above **do** produce intermediate objects with
+It is worth noting that all operators used above **do** produce intermediate objects with
 the result of partial evaluations (for example, there are two intermediate sets that are produced
-with the partial results needed to evaluate the `__or__`. These can be cleared via
-`garbage collection <_garbage_collection>`_.
+with the partial results needed to evaluate the `__or__`). These can be cleared via
+garbage collection.
 
-All of these operations have taken place at server side. None of the sets had
+All of these operations have taken place at **server side**. None of the sets had
 to travel to the client side, be processed and then be pushed out to the server
 again.
 
 Similarly, it is possible to create `AbstractMap`, `AbstractDLList` objects. For more information
-please refer to the documentation `here <>`_.
+please refer to the documentation.
 
 Abstract data structures over arbitrary data model entities
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -186,14 +194,12 @@ a simple query::
                                   "WHERE b.name IN ['Austria', 'Belgium', 'Bulgaria', 'Croatia', 'Cyprus', 'Czechia', "
                                   "'Denmark', 'Estonia', 'Finland', 'France', 'Germany', 'Greece', 'Hungary', "
                                   "'Ireland', 'Italy', 'Latvia', 'Lithuania', 'Luxembourg', 'Malta', 'Netherlands', "
-                                  "'Poland', 'Portugal', 'Romania', 'Slovakia', 'Slovenia', 'Spain', 'Sweden', "
-                                  "'United Kingdom'] ")
+                                  "'Poland', 'Portugal', 'Romania', 'Slovakia', 'Slovenia', 'Spain', 'Sweden'] ")
 
 At this point, ``some_abstract_list`` will be populated with all ``Person`` that have a connection to
-a ``Country`` within the `European Union's <https://en.wikipedia.org/wiki/European_Union>`_ EU27
-countries. This of course was *by name*.
+a ``Country`` within the European Union's EU27 countries. This of course was *by name*.
 
-With ``neoads`` it would have been possible to first create lists of ``Country`` that belong within
+With ``neoads`` it would also have been possible to first create lists of ``Country`` that belong within
 a specific geographical region (e.g. Europe, Asia, Americas, etc) and then create a list (still from
 a query) that makes use of a previously defined ``neoads`` list.
 
@@ -204,24 +210,23 @@ data structures creating higher complexity structures if required.
 For example a ``neoads`` abstract list of lists can be accessed via ``some_list[0][1]["Alpha"][2]``. The
 first indexing returns ``neoads.AbstractDLList`` whose indexing operation returns ``neoads.AbstractDLList``
 that in turn returns a ``neoads.AbstractMap`` whose value might be another ``neoads.AbstractDLList``
-from which we return element number ``2``.
+from which we return the element at index ``2``.
 
 ``neoads`` data structures remain completely re-usable at server side.
 
-For more information please see the documentation on `abstract data structures <>`_.
+For more information please see the documentation on abstract data structures.
 
 
-.. _garbage_collection:
-What happens to unnamed entities?
-"""""""""""""""""""""""""""""""""""
-Unnamed entities are saved at the DBMS but unless their `name` attribute has been saved (or
+What happens to unnamed entities? (garbage collection)
+""""""""""""""""""""""""""""""""""""""""""""""""""""""
+Unnamed entities are saved at the DBMS but unless their ``name`` attribute has been saved (or
 they have been renamed) it is impossible for them to be retrieved once a reference to them
 has been lost.
 
 This is of course by design, to cover for cases where an intermediate data structure
 is required, but is not required to be saved.
 
-For those particular cases, `neoads` provides a very simple "garbage collector".
+For those particular cases, ``neoads`` provides a very simple "garbage collector".
 The garbage collector is basically a set of scripts that look for specific variables
 and erase them.
 
@@ -270,8 +275,6 @@ example assumes that the ``NEO4J_BOLT_URL`` environment variable has already bee
 
 Documentation
 -------------
-At the moment, module documentation is available in ``doc/`` as a standard sphinx
+Module documentation is available in ``doc/`` as a standard sphinx
 documentation project.
 
-Class Diagrams & Data Modelling
--------------------------------

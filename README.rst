@@ -68,8 +68,11 @@ that:
 Quickstart
 ----------
 This section contains the bear minimum usage examples for a user to get up and
-running with ``neoads``. For more information, please refer to the detailed documentation
-available in ``doc/`` or the section **Class Diagrams & Data Modleling**.
+running with ``neoads``. 
+
+For more information, please refer to the 
+`detailed documentation in ReadTheDocs <https://neoads.readthedocs.io/en/latest/index.html>`_, 
+or in ``doc/``.
 
 Working with Simple Variables (Number, Date)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -155,7 +158,7 @@ to travel to the client side, be processed and then be pushed out to the server
 again.
 
 Similarly, it is possible to create `AbstractMap`, `AbstractDLList` objects. For more information
-please refer to the documentation.
+please refer `to the documentation <https://neoads.readthedocs.io/en/latest/index.html>`_.
 
 Abstract data structures over arbitrary data model entities
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -276,5 +279,5 @@ example assumes that the ``NEO4J_BOLT_URL`` environment variable has already bee
 Documentation
 -------------
 Module documentation is available in ``doc/`` as a standard sphinx
-documentation project.
+documentation project or over at `ReadTheDocs <https://neoads.readthedocs.io/en/latest/index.html>`_
 

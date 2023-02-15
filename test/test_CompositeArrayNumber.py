@@ -19,13 +19,13 @@ def test_init_from_query_IDs():
     # 1. To demonstrate that the formation query can be arbitrarily complex
     # 2. If other tests running at the same time happen to create SimpleNumbers within the range
     #    specified by this test, this test will fail.
-    number_variable_names = ",".join(["'{}'".format(a_number.name) for a_number in some_numbers])
+    number_variable_names = ",".join([f"'{a_number.name}'" for a_number in some_numbers])
     # Create the array itself. Here, an empty list is created.
     some_array = CompositeArrayNumber([]).save()
     # Populate the array with the IDs of specific nodes
     some_array.from_query_IDs("MATCH (ListItem:SimpleNumber) "
-                              "WHERE ListItem.name IN [{}] AND "
-                              "ListItem.value>2 AND ListItem.value<8".format(number_variable_names))
+                              f"WHERE ListItem.name IN [{number_variable_names}] AND "
+                              "ListItem.value>2 AND ListItem.value<8")
     # Now get a reference to the array
     # NOTE: This step is an extra failsafe for the test itself, it is not required in practice.
     u = CompositeArrayNumber.nodes.get(name=some_array.name)

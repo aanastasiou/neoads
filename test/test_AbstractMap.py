@@ -103,17 +103,19 @@ def test_from_keyvalue_node_query():
     # This is required here to make sure that we are operating on the right elements.
     element_names = []
     for an_element in elements:
-        element_names.append("'{}'".format(an_element[0].name))
-        element_names.append("'{}'".format(an_element[1].name))
+        element_names.append(f"'{an_element[0].name}'")
+        element_names.append(f"'{an_element[1].name}'")
     # Create the map
     you = neoads.AbstractMap().save()
+
+    lmn_names=",".join(element_names)
+
     # Populate the map via a query
-    you.from_keyvalue_node_query("MATCH (a:CompositeString) WHERE a.value IN ['One', 'Two', 'Three', 'Four'] AND "
-                                 "a.name IN [{lmn_names}] "
+    you.from_keyvalue_node_query(f"MATCH (a:CompositeString) WHERE a.value IN ['One', 'Two', 'Three', 'Four'] AND "
+                                 f"a.name IN [{lmn_names}] "
                                  "WITH collect(a) AS Keys "
-                                 "MATCH (b:SimpleNumber) WHERE b.value IN [1, 2, 3, 4] AND b.name IN [{lmn_names}] "
-                                 "WITH Keys, collect(b) AS Values RETURN Keys, Values"
-                                 .format(lmn_names=",".join(element_names)))
+                                 f"MATCH (b:SimpleNumber) WHERE b.value IN [1, 2, 3, 4] AND b.name IN [{lmn_names}] "
+                                 "WITH Keys, collect(b) AS Values RETURN Keys, Values")
     # Run the test
     assert len(you) == 4
     assert elements[0][0] in you

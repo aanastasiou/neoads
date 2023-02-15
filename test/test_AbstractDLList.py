@@ -95,11 +95,10 @@ def test_from_query():
     """
     # Create some generic content that is to be added to the DLList by query
     elements = [neoads.SimpleNumber(random.random()).save() for i in range(0, 10)]
-    element_names = ["'{}'".format(an_element.name) for an_element in elements]
+    element_names = [f"'{an_element.name}'" for an_element in elements]
     # Create and populate the DLList
     u = neoads.AbstractDLList().save()
-    u.from_query("MATCH (ListItem:SimpleNumber) WHERE ListItem.name IN [{lmn_name}]"
-                 .format(lmn_name=",".join(element_names)))
+    u.from_query(f"MATCH (ListItem:SimpleNumber) WHERE ListItem.name IN [{','.join(element_names)}]")
     # Run the test
     assert len(u) == len(elements)
     # Clean up
@@ -113,10 +112,10 @@ def test_from_id_array():
     """
     # Create some generic content that is to be added to the DLList by query
     elements = [neoads.SimpleNumber(random.random()).save() for i in range(0, 10)]
-    element_names = ["'{}'".format(an_element.name) for an_element in elements]
+    element_names = [f"'{an_element.name}'" for an_element in elements]
     # Create the CompositeNumber array from a query
     v = neoads.CompositeArrayNumber([]).save()
-    v.from_query_IDs("MATCH (ListItem:SimpleNumber) WHERE ListItem.name IN [{}] ".format(",".join(element_names)))
+    v.from_query_IDs(f"MATCH (ListItem:SimpleNumber) WHERE ListItem.name IN [{','.join(element_names)}] ")
     # We now have the CompositeArrayNumber we need, let's create the AbstractDLList.
     u = neoads.AbstractDLList().save()
     # Now populate from the array

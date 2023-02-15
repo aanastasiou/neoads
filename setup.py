@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="neoads",
-    version="0.0.1",
+    version="0.0.2",
     description="Abstract Data Structures (Set, Map, Doubly Linked List) over the neo4j graph database.",
     long_description=open("README.rst").read(),
     author="Athanasios Anastasiou",
@@ -16,7 +16,7 @@ setup(
     keywords="graph neo4j ORM OGM ADS Data Structure Modelling",
     setup_requires=["pytest-runner"] if any(x in ("pytest", "test") for x in sys.argv) else [],
     tests_require=["pytest"],
-    install_requires=['neomodel', 'pandas'],
+    install_requires=['neomodel', 'pandas', 'sphinx', 'sphinxcontrib-images'],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",

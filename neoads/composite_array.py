@@ -135,13 +135,13 @@ class CompositeArrayNumber(VariableComposite):
         Where ``[query]`` is an INCOMPLETE Cypher MATCH query with at least one named Node that is called "ListItem".
         That named node is the node whose id will be catalogued in the list.
 
-        .. warning ::
+        .. warning::
 
             The predefined "Array" must be propagated in subsequent withs for it to go all the way to the other
             side of the query and finish.
 
 
-        .. note ::
+        .. note::
             
             This functionality is not meant to substitute double linked lists for collections of articles because it
             relies heavily on Node IDs which are subject to change. Instead, this functionality is meant to ASSIST in
@@ -195,11 +195,11 @@ class CompositeArrayObjectBase(VariableComposite):
     """
     Represents *a query* that upon instantiation returns results in a particular form.
 
-    .. warning ::
+    .. warning::
     
         Not to be instantiated directly by user code.
 
-    .. note ::
+    .. note::
 
         This data structure stores the actual query that returns the results, NOT the results themselves.
         For this reason, the results might be different every time the query is executed (because the backend data
@@ -267,13 +267,13 @@ class CompositeArrayObjectDict(CompositeArrayObjectBase):
     """
     Represents a query that returns results as a Python dict.
 
-    .. note ::
+    .. note::
     
         By convention, the first return value from the query is the key and all others become the value. Therefore,
         "duplicates" (items that are returned but happen to have the same key) are removed.
 
 
-    .. warning ::
+    .. warning::
 
         The functionality of this data type removes duplicates AT THE CLIENT SIDE, NOT AT THE SERVER SIDE.
     """
@@ -291,7 +291,7 @@ class CompositeArrayObjectDataFrame(CompositeArrayObjectBase):
     """
     Represents a query that returns results as a pandas DataFrame.
 
-    .. note ::
+    .. note::
     
         The DataFrame does not have an index and access is through pandas' `iloc`.
 

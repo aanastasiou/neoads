@@ -17,7 +17,7 @@ class CompositeAbstract(VariableComposite):
     """
     Base class for representing abstract data structures.
 
-    .. note ::
+    .. note::
 
         Abstract data structures can be of any length (supported by the database) and they can point to ANY system element.
     """
@@ -94,7 +94,7 @@ class AbstractSet(CompositeAbstract):
     """
     A Set of UNIQUE elements.
 
-    .. warning ::
+    .. warning::
 
         Attractive as its functionality might be, the Set lacks functions to populate it with CYPHER queries
         (e.g. from_query). The key problem with that is that the item's hash_value cannot be set consistently (no
@@ -165,7 +165,7 @@ class AbstractSet(CompositeAbstract):
         """
         Initialises an abstract set from a list of hash, Node ID tuples
 
-        .. warning ::
+        .. warning::
 
             Not to be called directly.
 
@@ -216,7 +216,7 @@ class AbstractSet(CompositeAbstract):
         """
         Set equality.
 
-        .. note ::
+        .. note::
 
             Set equality for Sets of the same length is tested here purely on the basis of identical hashes.
 
@@ -394,7 +394,7 @@ class AbstractSet(CompositeAbstract):
         """
         Adds a new element to the set.
 
-        .. warning ::
+        .. warning::
         
             Not meant to be called directly.
 
@@ -417,7 +417,7 @@ class AbstractSet(CompositeAbstract):
         Adds an item to the set with a particular hash value.
 
 
-        .. warning ::
+        .. warning::
 
             Not meant to be called directly. Used by the AbstractMap.
 
@@ -438,7 +438,7 @@ class AbstractSet(CompositeAbstract):
         Retrieves the value that the set element points to given the set element's hash value.
 
       
-        .. warning ::
+        .. warning::
 
             Not meant to be called directly. Used by AbstractMap.
 
@@ -459,7 +459,7 @@ class AbstractSet(CompositeAbstract):
         """
         Removes an element from the set, given its hash value.
 
-        .. warning ::
+        .. warning::
 
             Not meant to be called directly. Used by AbstractMap.
 
@@ -480,7 +480,7 @@ class AbstractSet(CompositeAbstract):
         """
         Adds an item to the set. Similar to Python's set.add().
 
-        .. warning ::
+        .. warning::
 
             The item **must be hashable**.
 
@@ -520,7 +520,7 @@ class AbstractMap(CompositeAbstract):
     """
     A very simple mapping that maps a hash value (that can be computed by any hashable) to an entity.
 
-    .. note ::
+    .. note::
 
         The abstract map is implemented via two ``neoads.AbstractSets``, one for the keys and one for the values.
     """
@@ -532,7 +532,7 @@ class AbstractMap(CompositeAbstract):
         """
         Initialises the map.
 
-        .. note ::
+        .. note::
 
             Because of the way the object hierarchy is set up, an uninitialised set can exist without actual reference
             to the two ``AbstractSets`` it requires to function properly. **BUT**, when the time comes for the map to
@@ -578,7 +578,7 @@ class AbstractMap(CompositeAbstract):
         """
         Determines if the mapping contains a specific key.
 
-        .. note ::
+        .. note::
 
             This basically re-uses the IN operator for AbstractSet.
 
@@ -615,7 +615,7 @@ class AbstractMap(CompositeAbstract):
         """
         Sets / resets a key to be pointing to a specific value.
 
-        .. note ::
+        .. note::
             ``value`` should be a ``PersistentElement`` that has already been **saved** in the database.
             The AbstractSet must have been instantiated properly before any operations are applied to it.
 
@@ -647,7 +647,7 @@ class AbstractMap(CompositeAbstract):
         """
         Instantiates an AbstractMap via a query.
 
-        .. note ::
+        .. note::
 
             The query must have a specific structure and return two arrays, one for the keys and one for the values.
             For example:
@@ -742,7 +742,7 @@ class AbstractDLList(CompositeAbstract):
     """
     A doubly linked list with indexing.
 
-    .. note ::
+    .. note::
 
         Although the list is Doubly Linked, only the list's ``head`` is preserved with the List entry.
 
@@ -770,7 +770,7 @@ class AbstractDLList(CompositeAbstract):
         """
         Clears the list.
 
-        .. note ::
+        .. note::
 
             To delete the list itself, use destroy()
 
@@ -810,7 +810,7 @@ class AbstractDLList(CompositeAbstract):
         """
         Deletes a specific item from the list.
 
-        .. note ::
+        .. note::
 
             The item is selected by index and it can be wherever in a list.
 
@@ -855,7 +855,7 @@ class AbstractDLList(CompositeAbstract):
         subsequent queries. This function returns part of a query that can be concatenated with other lists as part of
         a bigger query.
 
-        .. note ::
+        .. note::
 
             Collects the values of projected_field from this list into a new, sequential array that is being known
             as projection_known_as.
@@ -920,12 +920,12 @@ class AbstractDLList(CompositeAbstract):
         """
         Generates a query that iterates over all items of the list.
 
-        .. note ::
+        .. note::
 
             This can be used to "trigger" further queries / operations over each item within the list.
 
 
-        .. warning ::
+        .. warning::
 
             These are the ACTUAL ITEMS that the list is holding. If this list is pointing to other lists, those
             lists are not automatically UNWINDED!!!!
@@ -1043,12 +1043,12 @@ class AbstractDLList(CompositeAbstract):
         """
         Creates a doubly linked list at server side.
 
-        .. note ::
+        .. note::
 
             The list's items point to the return result of ``query``. The query **MUST** return ``PersistentElement`` and be
             a CYPHER READ query.
 
-        .. warning ::
+        .. warning::
 
             At the moment, the way the CYPHER queries that build the list are expressed, they seem to "explode" with
             the number of items returned by from_query(..., query). So use with caution.
@@ -1109,7 +1109,7 @@ class AbstractDLList(CompositeAbstract):
         """
         Initialises the doubly linked list from a numeric array of node IDs.
 
-        .. note ::
+        .. note::
 
             This array_of_ids is usually constructed via a call to ``CompositeArrayNumber.from_query_IDs()``.
             Because of the dangers associated with maintaining IDs for long intervals it is best if these two are

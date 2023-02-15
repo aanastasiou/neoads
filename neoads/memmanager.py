@@ -18,7 +18,7 @@ class MemoryManager:
     """
     A memory manager object that handles abstract data structure CRUD operations.
 
-    .. note ::
+    .. note::
 
         This should be thought of like a memory context object within which, all neoads variables live. It is basically
         bounded only by the capacity of the server and network latencies.
@@ -28,7 +28,7 @@ class MemoryManager:
         """
         Initialises the manager.
 
-        .. note ::
+        .. note::
 
             If none of the expected configuration parameters are provided, the constructor will try
             to initialise the object via the ``connection_uri`` environment variable. If that fails, it will
@@ -68,7 +68,7 @@ class MemoryManager:
         """
         Obtains a list of top level objects from the server.
 
-        .. note ::
+        .. note::
 
             Similar in functionality to a dir
 
@@ -139,7 +139,7 @@ class MemoryManager:
         :type deep: bool
         :return: dict
 
-        .. note ::
+        .. note::
             
             * Reports counts of:
                 * "Stray" data structure items

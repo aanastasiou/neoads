@@ -44,8 +44,8 @@ This means that ``neoads`` data structures could behave as drop-in replacements 
 processing algorithms and interact "naturally" with other objects via operators and functions.
 
 From this point of view, Neo4J becomes a giant
-`heap <https://en.wikipedia.org/wiki/Memory_management#Dynamic_memory_allocation>`_
- available to higher level algorithms.
+`heap <https://en.wikipedia.org/wiki/Memory_management#Dynamic_memory_allocation>`_ available 
+to higher level algorithms.
 
 
 Installation

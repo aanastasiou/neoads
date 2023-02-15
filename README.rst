@@ -233,7 +233,7 @@ and erase them.
 These variables are as follows:
 
 1. Variables whose name conforms to a UUID4 identifier and do not have any connection
-with any other entity in the system
+   with any other entity in the system
 
 2. Data structure entities that are not connected to any data structure
 

@@ -10,6 +10,7 @@ The ``neoads`` API
     api_compositedatatypes
     api_abstractdatatypes
     api_memmanager
+    api_exceptions
 
    
 

@@ -1,9 +1,9 @@
 """
-Athanasios Anastasiou Sep 2018
-
 Tests functionality that is specific to AbstractMap and is not covered by the general tests described in
 `test_DataTypeFeatures.py`.
 
+:author: Athanasios Anastasiou
+:date: Sep 2018
 """
 import pytest
 import neoads

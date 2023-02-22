@@ -1,7 +1,8 @@
 """
-    Athanasios Anastasiou Mar 2019
+Universal abstract data object features, mostly applicable to Simple data type variables.
 
-    Universal abstract data object features, mostly applicable to Simple data type variables.
+:author: Athanasios Anastasiou
+:date: Mar 2019
 """
 
 import random

@@ -1,9 +1,8 @@
 """
-Tests functionality that is specific to CompositeArrayNumber and is not covered by the general tests described in
-`test_DataTypeFeatures.py`
+Tests functionality that is specific to ``CompositeArrayObject`` objects.
 
 :author: Athanasios Anastasiou
-:date: Mar 2019
+:date: March 2019
 """
 
 from neoads import CompositeArrayNumber, SimpleNumber

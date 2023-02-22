@@ -1,8 +1,9 @@
 """
-Athanasios Anastasiou Sep 2018
-
 Tests functionality that is specific to AbstractSet and is not covered by the general tests described in
 `test_DataTypeFeatures.py`
+
+:author: Athanasios Anastasiou
+:date: Sep 2018
 """
 import random
 import pytest

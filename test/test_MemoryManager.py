@@ -1,7 +1,8 @@
 """
-Athanasios Anastasiou Mar 2019
-
 Runs basic tests for the memory manager object.
+
+:author: Athanasios Anastasiou
+:date: Mar 2019
 """
 
 import random

@@ -15,7 +15,7 @@ setup(
     packages=find_packages(exclude=("test", "test.*")),
     keywords="graph neo4j ORM OGM ADS Data Structure Modelling",
     setup_requires=["pytest-runner"] if any(x in ("pytest", "test") for x in sys.argv) else [],
-    tests_require=["pytest"],
+    tests_require=["pytest", "pandas"],
     install_requires=['neomodel'],
     classifiers=[
         "Development Status :: 4 - Beta",

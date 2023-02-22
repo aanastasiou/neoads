@@ -42,7 +42,8 @@ class CompositeArrayObjectBase(VariableComposite):
         if not refresh and self._result is not None:
             return self._result
 
-        items, attr = neomodel.db.cypher_query(self.value, params=params, resolve_objects=self.resolve_objects)
+        #items, attr = neomodel.db.cypher_query(self.value, params=params, resolve_objects=self.resolve_objects)
+        items, attr = neomodel.db.cypher_query(self.value, params=params)
         return items, attr
 
     def __getitem__(self, item):

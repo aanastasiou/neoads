@@ -1,5 +1,5 @@
 """
-    Exception hierarchy for neoads.
+Exception hierarchy for neoads.
 
 :author: Athanasios Anastasiou
 :date: June 2018

@@ -1,5 +1,7 @@
 """
-Definitions for composite data types. These represent values that are composite (e.g. arrays).
+Definitions for composite (e.g. arrays) data types.
+
+Composite data types are resolved to neo4j native arrays.
 
 
 :author: Athanasios Anastasiou 

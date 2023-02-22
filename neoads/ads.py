@@ -1,6 +1,8 @@
 """
 Definitions for abstract data structures.
 
+The module defines both end-user data structures as well as intermediate (or helper) data structures.
+
 
 :author: Athanasios Anastasiou 
 :date: Jan 2018
@@ -56,6 +58,7 @@ class CompositeAbstract(VariableComposite):
 class AbstractStructItem(neomodel.StructuredNode):
     """
     Base class for helper entities that are used by the abstract data types.
+
     For example, the double linked list item, each item of the set etc.
     """
     # By knowing that abstract data structure items are attached on "ABSTRACT_STRUCT_ITEM_VALUE" relationships

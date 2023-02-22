@@ -1,3 +1,10 @@
+"""
+Abstact Data Structures over neo4j.
+
+:author: Athanasios Anastasiou
+:date: Feb 2023
+"""
+
 import pkg_resources
 from .core import ElementDomain
 

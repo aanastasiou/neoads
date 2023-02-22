@@ -6,8 +6,12 @@ from .simple import SimpleNumber, SimpleDate
 from .composite_array import (CompositeString, CompositeArrayString, CompositeArrayNumber,
                               CompositeArrayDate) 
 
-from .composite_array_object import (CompositeArrayObjectList, 
-                                     CompositeArrayObjectDict, CompositeArrayObjectDataFrame)
+from .composite_array_object import (CompositeArrayObjectList, CompositeArrayObjectDict)
+
+try:
+    from .composite_array_object import CompositeArrayObjectDataFrame
+except ImportError:
+    pass
 
 from .ads import (AbstractSet, AbstractMap, AbstractDLList)
 

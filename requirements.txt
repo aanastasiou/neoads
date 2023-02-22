@@ -1,4 +1,4 @@
-neomodel==4.0.8
+neomodel
 sphinx
 pandas
 sphinxcontrib-images

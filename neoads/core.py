@@ -14,7 +14,6 @@ about their internal structure.
 
 import neomodel
 from . import exception
-import pandas
 import datetime
 import hashlib
 

@@ -1,11 +1,14 @@
 """
-Definitions for composite data types. These represent values that are composite (e.g. arrays).
+Definitions for composite "object" data types.
+
+The classes defined in this module can be used to store a specific **neo4j cypher query** and 
+"address" it as if it was a ``dict``, ``list`` or ``pandas.DataFrame``
+
 
 
 :author: Athanasios Anastasiou 
 :date: Jan 2018
 """
-import pandas
 import neomodel
 from .composite_array import VariableComposite
 
@@ -40,19 +43,6 @@ class CompositeArrayObjectBase(VariableComposite):
             return self._result
 
         items, attr = neomodel.db.cypher_query(self.value, params=params, resolve_objects=self.resolve_objects)
-        # if self.result_as == "list":
-        #     # If a list is requested, you return a list of dictionaries which
-        #     # allows accessors of the form myList[0]["someNode"]
-        #     self._result = list(map(lambda x: dict(zip(attr, x)), items))
-        # elif self.result_as == "dict":
-        #     self._result = dict(map(lambda x: (x[0], dict(zip(attr[1:], x[1:]))), items))
-        # elif self.result_as == "pandas":
-        #     # If the return is a pandas dataframe then noCasting is ignored
-        #     self._result = pandas.DataFrame(columns=attr, data=items, index=None)
-        # else:
-        #     raise NotImplementedError(f"{self._result} return value requested. Currently supported are (pandas,dict,list)")
-
-        #return self._result
         return items, attr
 
     def __getitem__(self, item):
@@ -98,16 +88,22 @@ class CompositeArrayObjectDict(CompositeArrayObjectBase):
         return dict(map(lambda x: (x[0], dict(zip(attr[1:], x[1:]))), items))
 
 
-class CompositeArrayObjectDataFrame(CompositeArrayObjectBase):
-    """
-    Represents a query that returns results as a pandas DataFrame.
+try:
+    import pandas
 
-    .. note::
+    class CompositeArrayObjectDataFrame(CompositeArrayObjectBase):
+        """
+        Represents a query that returns results as a pandas DataFrame.
     
-        The DataFrame does not have an index and access is through pandas' `iloc`.
+        .. note::
+        
+            The DataFrame does not have an index and access is through pandas' `iloc`.
+    
+        """
+        def execute(self, params=None, refresh=True):
+            items, attr = super().execute(params, refresh) 
+            return pandas.DataFrame(columns=attr, data=items, index=None)
+except ImportError:
+    pass
 
-    """
-    def execute(self, params=None, refresh=True):
-        items, attr = super().execute(params, refresh) 
-        return pandas.DataFrame(columns=attr, data=items, index=None)
 

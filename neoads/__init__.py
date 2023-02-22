@@ -4,8 +4,10 @@ from .core import ElementDomain
 from .simple import SimpleNumber, SimpleDate
 
 from .composite_array import (CompositeString, CompositeArrayString, CompositeArrayNumber,
-                              CompositeArrayDate, CompositeArrayObjectList, 
-                              CompositeArrayObjectDict, CompositeArrayObjectDataFrame) 
+                              CompositeArrayDate) 
+
+from .composite_array_object import (CompositeArrayObjectList, 
+                                     CompositeArrayObjectDict, CompositeArrayObjectDataFrame)
 
 from .ads import (AbstractSet, AbstractMap, AbstractDLList)
 

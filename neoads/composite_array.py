@@ -89,7 +89,6 @@ class CompositeString(VariableComposite):
         """
         Returns the hash of the string value.
         """
-        self._pre_action_check('__hash__')
         return int(hashlib.sha256(self.value.encode("utf-8")).hexdigest(), base=16)
     
     

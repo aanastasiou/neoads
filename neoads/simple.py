@@ -32,9 +32,13 @@ class VariableSimple(ElementVariable):
             super().__init__(value=value)
 
     def _neoads_hash(self):
-        self._pre_action_check('hash')
-        # return hash(self.value)
-        return super().__hash__()
+        """
+        Compute the hash value of VariableSimple as the sha256 of its string representation.
+
+        In general, simple variable values are expected to be able to be converted to 
+        string in a straightforward way.
+        """
+        return int(hashlib.sha256(str(self.value).encode("utf-8")).hexdigest(), base=16)
 
 
 class SimpleNumber(VariableSimple):
@@ -55,10 +59,7 @@ class SimpleNumber(VariableSimple):
             raise TypeError(f"SimpleNumber initialisation expects int or float received {type(value)}")
         super().__init__(value=float(value), name=name)
 
-    def _neoads_hash(self):
-        self._pre_action_check('hash')
-        return int(hashlib.sha256(str(self.value).encode("utf-8")).hexdigest(), base=16)
-
+        
 
 class SimpleDate(VariableSimple):
     """
@@ -74,9 +75,4 @@ class SimpleDate(VariableSimple):
         if not isinstance(value, datetime.date):
             raise TypeError(f"SimpleDate initialisation expects datetime.date received {type(value)}")
         super().__init__(value=value, name=name, **kwargs)
-
-    def _neoads_hash(self):
-        self._pre_action_check('hash')
-        return int(hashlib.sha256(str(self.value).encode("utf-8")).hexdigest(), base=16)
-
 

@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="neoads",
-    version="0.0.3",
+    version="0.0.4",
     description="Abstract Data Structures (Set, Map, Doubly Linked List) over the neo4j graph database.",
     long_description=open("README.rst").read(),
     author="Athanasios Anastasiou",

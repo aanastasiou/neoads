@@ -90,7 +90,7 @@ class SetItem(AbstractStructItem):
         if isinstance(hash_value, int):
             # Convert it to a string
             hash_value = f"{hash_value:x}"
-            super().__init__(hash_value=hash_value, **kwargs)
+        super().__init__(hash_value=hash_value, **kwargs)
 
 
 class AbstractSet(CompositeAbstract):

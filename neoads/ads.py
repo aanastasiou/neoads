@@ -64,7 +64,7 @@ class AbstractStructItem(neomodel.StructuredNode):
     # By knowing that abstract data structure items are attached on "ABSTRACT_STRUCT_ITEM_VALUE" relationships
     # it also becomes very easy to look for "orphan" entities whether it is for garbage collection or any other
     # purpose of the memory manager.
-    value = neomodel.RelationshipTo("PersistentElement", "ABSTRACT_STRUCT_ITEM_VALUE")
+    value = neomodel.RelationshipTo("PersistentElement", "ABSTRACT_STRUCT_ITEM_VALUE", cardinality=neomodel.One)
       
 
 class SetItem(AbstractStructItem):
@@ -528,8 +528,8 @@ class AbstractMap(CompositeAbstract):
         The abstract map is implemented via two ``neoads.AbstractSets``, one for the keys and one for the values.
     """
 
-    keys_set = neomodel.RelationshipTo("AbstractSet", "KEYS_SET")
-    values_set = neomodel.RelationshipTo("AbstractSet", "VALUES_SET")
+    keys_set = neomodel.RelationshipTo("AbstractSet", "KEYS_SET", cardinality=neomodel.One)
+    values_set = neomodel.RelationshipTo("AbstractSet", "VALUES_SET",cardinality=neomodel.One)
 
     def _init_map(self):
         """

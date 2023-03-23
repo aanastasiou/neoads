@@ -332,6 +332,35 @@ Individual entries can be removed from the map via a simple call to Python's ``d
 
 ``AbstractMap`` is cleared and "destroyed" via the same interface as described in the ``AbstractSet`` section.
 
+.. note::
+
+   * It might be inferred from the above that merely trying to access an ``AbstractMap``, requires a ``neoads``
+     variable that is already saved in the database.
+
+   * It is however possible to **recall** items from an ``AbstractMap`` using an object that is not yet saved in the 
+     database. This makes accesss much more straightforward.
+
+     * For example, suppose:
+
+       ::
+
+           # Initialisation
+           # This code creates two nodes that are attached to 
+           # the set of keys and values of the AbstracMap.
+
+           m = neoads.AbstractMap(name="m").save()
+           k = neoads.CompositeString("Alpha").save()
+           v = neoads.CompositeString("Something").save()
+           m[k] = v
+    
+           # Now, given m, it is possible to do a quick lookup as:
+           m[neoads.CompositeString("Alpha")]
+    
+           # Notice here that m simply accepts a CompositeString() that 
+           # is not saved in the database.
+
+
+
 
 Working with ``AbstractDLList``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -221,8 +221,6 @@ class AbstractMap(CompositeAbstract):
         try:
             key_set = self.keys_set[0]
             value_set = self.values_set[0]
-            self.keys_set.disconnect(key_set)
-            self.values_set.disconnect(value_set)
             key_set.destroy()
             value_set.destroy()
         except IndexError:

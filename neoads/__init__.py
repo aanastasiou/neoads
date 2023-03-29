@@ -20,7 +20,9 @@ try:
 except ImportError:
     pass
 
-from .ads import (AbstractSet, AbstractMap, AbstractDLList)
+from .ads_abstractset import AbstractSet
+from .ads_abstractmap import AbstractMap
+from .ads_abstractdllist import AbstractDLList
 
 from .exception import ObjectUnsavedError, ObjectDeletedError, ContainerNotEmpty, QueryNotExecuted, MemoryManagerError
 from .memmanager import MemoryManager

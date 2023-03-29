@@ -2,7 +2,7 @@ import warnings
 import os
 import sys
 
-from neomodel import config, db, clear_neo4j_database, change_neo4j_password
+from neomodel import config, db, clear_neo4j_database, change_neo4j_password, remove_all_labels
 
 
 def pytest_sessionstart(session):
@@ -21,4 +21,5 @@ def pytest_sessionstart(session):
         config.DATABASE_URL = f"bolt://{os.environ['NEO4J_USERNAME']}:{os.environ['NEO4J_PASSWORD']}@localhost:7687"
     else:
         raise SystemError("Please set the authentication environment variables (either NEO4J_BOLT_URL or NEO4J_USERNAME and NEO4J_PASSWORD")
+    remove_all_labels()
     config.AUTO_INSTALL_LABELS = True

@@ -10,7 +10,7 @@ future will be passing via the ``MemoryManager`` in the form of CYPHER (or augme
 
 import neomodel
 import os
-import neoads.exception
+from . import exception
 
 
 # TODO: MED, The memory manager could support a list of servers to route commands to, akin to namespaces.
@@ -93,7 +93,7 @@ class MemoryManager:
                                                      "return anObject".format(
                                                     **{"object_name": an_object_name}), resolve_objects=True)
         if len(object_from_db) != 1:
-            raise exception.MemoryManagerError("Object with name {} not found".format(an_object_name))
+            raise exception.ObjectNotFound(f"Object with name {an_object_name} not found")
         else:
             return object_from_db[0][0]
 

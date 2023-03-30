@@ -47,3 +47,9 @@ class MemoryManagerError(NeoadsException):
     Raised when the memory manager encounters specific error conditions.
     """
     pass
+
+class ObjectNotFound(MemoryManagerError):
+    """
+    Raised when a variable that does not exist is requested from the system.
+    """
+    pass

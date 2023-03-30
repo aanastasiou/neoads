@@ -29,6 +29,7 @@ def test_list_objects():
     [an_item.delete() for an_item in some_data]
 
 
+# TODO: HIGH, Added test for ObjectNotFound
 def test_get_object():
     """
     MemoryManager should return reference to an object by name.

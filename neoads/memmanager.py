@@ -75,6 +75,7 @@ class MemoryManager:
 
         :return: list[str]
         """
+        # TODO: HIGH, This should only return named variables by default, with a possible flag to enable returning everything
         object_names, _ = neomodel.db.cypher_query("MATCH (anObject:ElementVariable) return anObject.name")
         object_names = [a_name[0] for a_name in object_names]
         return object_names

@@ -34,6 +34,7 @@ class VariableComposite(ElementVariable):
         else:
             super().__init__(value=value, **kwargs)
 
+    @neomodel.db.transaction
     def clear(self):
         """
         Clears the array by writing an empty sequence to its value.
@@ -123,6 +124,7 @@ class CompositeArrayNumber(VariableComposite):
         else:
             raise TypeError(f"CompositeArrayNumber assignment expects float received {type(value)}")
 
+    @neomodel.db.transaction
     def from_query_IDs(self, query, refresh=True, auto_reset=False):
         """
         Executes a special type of query to populate the array of numbers with the IDs of the

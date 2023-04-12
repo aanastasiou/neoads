@@ -109,6 +109,7 @@ class AbstractSet(CompositeAbstract):
     #     self.refresh()
     #     return self
 
+    @neomodel.db.transaction
     def from_hash_nodeid_list(self, a_hash_nodeid_list, auto_reset=False):
         """
         Initialises an abstract set from a list of hash, Node ID tuples
@@ -200,6 +201,7 @@ class AbstractSet(CompositeAbstract):
         #        [setelement.hash_value for setelement in other.elements]
         return bool(is_equal[0][0])
 
+    @neomodel.db.transaction
     def __or__(self, other):
         """
         Set union.
@@ -230,6 +232,7 @@ class AbstractSet(CompositeAbstract):
         new_set.refresh()
         return new_set
 
+    @neomodel.db.transaction
     def __and__(self, other):
         """
         Set intersection.
@@ -252,6 +255,7 @@ class AbstractSet(CompositeAbstract):
         new_set.refresh()
         return new_set
 
+    @neomodel.db.transaction
     def __sub__(self, other):
         """
         Set difference.
@@ -275,6 +279,7 @@ class AbstractSet(CompositeAbstract):
         new_set.refresh()
         return new_set
 
+    @neomodel.db.transaction
     def __xor__(self, other):
         """
         Set symmetric difference
@@ -360,6 +365,7 @@ class AbstractSet(CompositeAbstract):
         self.elements.connect(new_set_item)
         return self
 
+    @neomodel.db.transaction
     def add_with_hash(self, an_item, a_hash):
         """
         Adds an item to the set with a particular hash value.
@@ -403,6 +409,7 @@ class AbstractSet(CompositeAbstract):
             return self.cypher(f"MATCH (a_set:AbstractSet{{name:'{nme}'}})-[:SET_ELEMENT]->(an_element:SetItem) WHERE an_element.hash_value='{itm_hash:x}' return an_element")[0][0]
         raise KeyError(f"AbstractSet does not contain item with hash {a_hash:x}")
 
+    @neomodel.db.transaction
     def remove_by_hash(self, a_hash):
         """
         Removes an element from the set, given its hash value.
@@ -424,6 +431,7 @@ class AbstractSet(CompositeAbstract):
             raise KeyError(f"AbstractSet does not contain item with hash {a_hash:x}")
         return self
 
+    @neomodel.db.transaction
     def add(self, an_item):
         """
         Adds an item to the set. Similar to Python's set.add().
@@ -453,6 +461,7 @@ class AbstractSet(CompositeAbstract):
         self._pre_action_check("clear")
         self.cypher(f"MATCH (a_set:AbstractSet{{name:'{nme}'}})-[r1:SET_ELEMENT]->(el_item:SetItem)-[r2:ABSTRACT_STRUCT_ITEM_VALUE]->() DETACH DELETE r2,el_item,r1")
 
+    @neomodel.db.transaction
     def destroy(self):
         """
         Clears the set and removes it from the DBMS completely.

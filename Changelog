@@ -2,7 +2,8 @@ Version 0.0.6
 
 * Added ObjectNotFound to MemoryManager
 * Corrected bug in garbage collection
-
+* Corrected tests for CompositeArrayObjectDataFrame to give warning when
+  pandas is not installed
 
 Version 0.0.5 2023-03-29
 

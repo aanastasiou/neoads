@@ -1,4 +1,4 @@
-Version 0.0.6
+Version 0.0.6 2023-04-15
 
 * Added ObjectNotFound to MemoryManager
 * Corrected bug in garbage collection

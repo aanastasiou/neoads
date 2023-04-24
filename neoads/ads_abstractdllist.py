@@ -1,5 +1,5 @@
 """
-Definitions for abstract data structures.
+Definitions for the abstract double linked list (``AbstractDLList``).
 
 The module defines both end-user data structures as well as intermediate (or helper) data structures.
 
@@ -347,8 +347,8 @@ class AbstractDLList(CompositeAbstract):
 
          ::
 
-         "MATCH (ListItem:Institute)-[:CITY]-(:City)-[:IN_COUNTRY]-(:Country{countryName:'Australia'})"
-                   with a possible WHERE clause too
+            "MATCH (ListItem:Institute)-[:CITY]-(:City)-[:IN_COUNTRY]-(:Country{countryName:'Australia'})"
+                      with a possible WHERE clause too
 
 
         :param no_duplicates: Whether or not to retain potential ListItem duplicates that might be returned by `query`

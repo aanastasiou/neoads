@@ -1,5 +1,5 @@
 """
-Definition of the AbstractSet.
+Definition of the ``AbstractSet``.
 
 :author: Athanasios Anastasiou 
 :date: Mar 2023

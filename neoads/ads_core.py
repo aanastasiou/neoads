@@ -1,5 +1,5 @@
 """
-Definitions for abstract data structures.
+Definitions of neoads core objects to support a "memory model" over neo4j.
 
 The module defines both end-user data structures as well as intermediate (or helper) data structures.
 

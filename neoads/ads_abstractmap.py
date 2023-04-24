@@ -1,5 +1,5 @@
 """
-Definitions for abstract data structures.
+Definitions for the abstract set (``AbstractSet``) data structure.
 
 The module defines both end-user data structures as well as intermediate (or helper) data structures.
 
@@ -30,6 +30,32 @@ class AbstractMap(CompositeAbstract):
 
     keys_set = neomodel.RelationshipTo("AbstractSet", "KEYS_SET", cardinality=neomodel.One)
     values_set = neomodel.RelationshipTo("AbstractSet", "VALUES_SET",cardinality=neomodel.One)
+
+    @property
+    def keys(self):
+        """
+        Return an iterator to keys.
+
+        :returns: An iterator to the neoads elements that make up the `AbstractSet` of keys.
+        :rtype: list
+        """
+        try:
+            return map(lambda x:x.value[0], self.keys_set[0].elements.all())
+        except IndexError:
+            return None
+
+    @property
+    def values(self):
+        """
+        Return an iterator to values.
+
+        :returns: An iterator to the neoads elements that make up the `AbstractSet` of values.
+        :rtype: list
+        """
+        try:
+            return map(lambda x:x.value[0], self.values_set[0].elements.all())
+        except IndexError:
+            return None
 
     def _init_map(self):
         """
@@ -156,19 +182,19 @@ class AbstractMap(CompositeAbstract):
             For example:
 
             ::
+                
+               SimpleNumber(1).save()
+               SimpleNumber(2).save()
+               SimpleNumber(3).save()
 
-            SimpleNumber(1).save()
-            SimpleNumber(2).save()
-            SimpleNumber(3).save()
+               CompositeString("One").save()
+               CompositeString("Two").save()
+               CompositeString("Three").save()
 
-            CompositeString("One").save()
-            CompositeString("Two").save()
-            CompositeString("Three").save()
+               Q = AbstractSet(name="ASET").save()
 
-            Q = AbstractSet(name="ASET").save()
-
-            Q.from_keyvalue_node_query("MATCH (a:ElementVariable) WHERE a.value IN [1,2,3] WITH collect(a) AS Keys
-            MATCH (b:ElementVariable) WHERE b.value IN ["One","Two","Three"] WITH Keys, collect(b) as Values")
+               Q.from_keyvalue_node_query("MATCH (a:ElementVariable) WHERE a.value IN [1,2,3] WITH collect(a) AS Keys
+               MATCH (b:ElementVariable) WHERE b.value IN ["One","Two","Three"] WITH Keys, collect(b) as Values")
 
             
             The objects in the array will have to be inflated in to Python, their hash calculated and then used to

@@ -360,8 +360,6 @@ Individual entries can be removed from the map via a simple call to Python's ``d
            # is not saved in the database.
 
 
-
-
 Working with ``AbstractDLList``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -442,6 +440,25 @@ list. Therefore, it is possible for ``AbstractDLList`` to grow very large, very 
 ``extend_by_merging()`` of various lists.
 
 And finally, ``AbstractDLList`` is cleared and "destroyed" via the same interface as described previously.
+
+
+A note on transactions
+----------------------
+
+.. note::
+
+   * ``neoads`` is built on top of ``neomodel`` and is relying on it for `transaction management <https://neomodel.readthedocs.io/en/latest/transactions.html>`_.
+   * *At the moment* the responsibility of starting a transaction **lies with the user of neoads**.
+   * This means that if you don't start a transaction and something goes wrong with code that uses ``neoads``, the database might be left 
+     in an invalid state. Most of the times this does not mean data loss but that a certain data structure you were creating (for example) is left 
+     incomplete.
+   * To avoid this, make sure that you wrap your ``neoads`` calls to a transaction as per the following example:
+
+     ::
+
+        with neomodel.db.transaction:
+           neoads.SimpleNumber("MyNum", 3.1415928).save()
+
 
 What else is there?
 -------------------

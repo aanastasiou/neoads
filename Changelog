@@ -1,9 +1,17 @@
+Version 0.0.7
+
+* Added `keys, values` properties on `AbstractMap`
+* Added note about transactions in quickstart, reviewed Motivation section, 
+  minor edits to other parts of documentation.
+
+
 Version 0.0.6 2023-04-15
 
 * Added ObjectNotFound to MemoryManager
 * Corrected bug in garbage collection
 * Corrected tests for CompositeArrayObjectDataFrame to give warning when
   pandas is not installed
+
 
 Version 0.0.5 2023-03-29
 

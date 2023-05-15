@@ -1,5 +1,6 @@
 Version 0.0.7
 
+* Added the ability to reset the connection (See MemoryManager.__init__())
 * Added `keys, values` properties on `AbstractMap`
 * Added note about transactions in quickstart, reviewed Motivation section, 
   minor edits to other parts of documentation.

@@ -24,7 +24,7 @@ class MemoryManager:
         bounded only by the capacity of the server and network latencies.
 
     """
-    def __init__(self, connection_uri=None, uname=None, pword=None, host="localhost", port=7687):
+    def __init__(self, connection_uri=None, uname=None, pword=None, host="localhost", port=7687, reset_connection=True):
         """
         Initialises the manager.
 
@@ -45,6 +45,17 @@ class MemoryManager:
         :type host: str
         :param port: The port number the server is running on
         :type port: int
+        :param reset_connection: Whether to re-try to establish a connection to the Neo4j server described by the rest 
+                                 of the parameters. Every time the ``MemoryManager`` is initialised it attempts to connect to 
+                                 the specified server. However, if that initial connection has already been configured 
+                                 at another point in the code, setting ``reset_connection`` to False, will prevent it from 
+                                 re-trying to establish the connection. Usually, when the ``MemoryManager`` is the only 
+                                 object by which the backend is accessed (or when multiple ``MemoryManager`` objects are 
+                                 connecting to different databases), it would need to configure its connection. But, 
+                                 when this connection has already been established, then ``reset_connection`` can be 
+                                 set to False to skip that step (for example, when trying to use `MemoryManager` functionality
+                                 from within another framework).
+        :type reset_connection: bool
         """
         # Setup the logger
         # logging.basicConfig(format="%(levelname)s:%(name)s:%(asctime)s:%(message)s", datefmt="%m/%d/%Y %I:%M:%S %p",
@@ -62,7 +73,8 @@ class MemoryManager:
                 raise exception.MemoryManagerError("The NEO4J_USERNAME and or NEO4J_PASSWORD variables are not set."
                                              "Cannot connect to database.")
         self._connection_URI = conn_uri
-        neomodel.db.set_connection(self._connection_URI)
+        if reset_connection:
+            neomodel.db.set_connection(self._connection_URI)
 
     def list_objects(self):
         """

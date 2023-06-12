@@ -123,22 +123,40 @@ class MemoryManager:
         # TODO: MED, Garbage collection should become the responsibility of each type and have separate functions that
         #       the manager calls to perform garbage collection.
 
-        # NOTE: Notice here that the order by which the garbage collection occurs is important
+        # NOTE: The iterative nature of the following set of queries is unavoidable if data structures are allowed to be 
+        #       nested without constraints.
+        #       Suppose the existence of a "map(A) of map(B)" data structure. Without iteration, the garbage collection of
+        #       map A, leads to the garbage collection of the Abstract sets of the keys and the values. But the AbstractMap 
+        #       garbage collection does not get a chance to be re-triggered and therefore map(B) remains uncollected.
+        #       The iteration here ensures that nodes are deleted until no more entities can be deleted.
 
-        # Delete orphaned maps
-        neomodel.db.cypher_query("MATCH (a:AbstractMap)-[:VALUES_SET]->(:AbstractSet), (a)-[:KEYS_SET]->(:AbstractSet) WHERE a.name=~'^[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]$' AND NOT ()-[]->(a) DETACH DELETE a")
+        entities_deleted = 1
+        while entities_deleted > 0:
+            m1 = neomodel.db.cypher_query("MATCH (a:AbstractMap)-[:VALUES_SET]->(:AbstractSet), (a)-[:KEYS_SET]->(:AbstractSet) WHERE a.name=~'^[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]$' AND NOT ()-[]->(a) return count(a)")[0][0][0]
 
-        # Delete orphan sets that are not referenced by anything. These would be unreachable.
-        # This step can produce a lot of orphan intermediate abstract structure elements
-        neomodel.db.cypher_query("MATCH (a:AbstractSet)-[:SET_ELEMENT]->(b:SetItem) WHERE a.name=~'^[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]$' AND NOT ()-[]->(a) DETACH DELETE a,b") 
+            m2 = neomodel.db.cypher_query("MATCH (a:AbstractSet)-[:SET_ELEMENT]->(b:SetItem) WHERE a.name=~'^[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]$' AND NOT ()-[]->(a) DETACH DELETE a,b return count(a)")[0][0][0]
 
-        # Delete orphan intermediate abstract struct elements of the Double Linked List
-        # Match the severed heads of lists and delete the whole path connected to them
-        neomodel.db.cypher_query("MATCH (b:AbstractStructItem:DLListItem) WHERE (b)-[:DLL_NXT]->(:AbstractStructItem:DLListItem) AND (b)<-[:DLL_PRV]-(:AbstractStructItem:DLListItem) AND NOT (b)-[:DLL_PRV]->(:AbstractStructItem:DLListItem) AND NOT (b)<-[:DLL_NXT]-(:AbstractStructItem:DLListItem) WITH b MATCH p=(b)-[:DLL_NXT*]->(:AbstractStructItem:DLListItem) DETACH DELETE p;")
- 
+            m3 = neomodel.db.cypher_query("MATCH (b:AbstractStructItem:DLListItem) WHERE (b)-[:DLL_NXT]->(:AbstractStructItem:DLListItem) AND (b)<-[:DLL_PRV]-(:AbstractStructItem:DLListItem) AND NOT (b)-[:DLL_PRV]->(:AbstractStructItem:DLListItem) AND NOT (b)<-[:DLL_NXT]-(:AbstractStructItem:DLListItem) WITH b MATCH p=(b)-[:DLL_NXT*]->(:AbstractStructItem:DLListItem) return count(p);")[0][0][0]
+
+            if m1 > 0:
+                # Delete orphaned maps
+                neomodel.db.cypher_query("MATCH (a:AbstractMap)-[:VALUES_SET]->(:AbstractSet), (a)-[:KEYS_SET]->(:AbstractSet) WHERE a.name=~'^[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]$' AND NOT ()-[]->(a) DETACH DELETE a")
+            if m2 > 0:
+                # Delete orphan sets that are not referenced by anything. These would be unreachable.
+                # This step can produce a lot of orphan intermediate abstract structure elements
+                neomodel.db.cypher_query("MATCH (a:AbstractSet)-[:SET_ELEMENT]->(b:SetItem) WHERE a.name=~'^[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]$' AND NOT ()-[]->(a) DETACH DELETE a,b") 
+
+            if m3 > 0:
+                # Delete orphan intermediate abstract struct elements of the Double Linked List
+                # Match the severed heads of lists and delete the whole path connected to them
+                neomodel.db.cypher_query("MATCH (b:AbstractStructItem:DLListItem) WHERE (b)-[:DLL_NXT]->(:AbstractStructItem:DLListItem) AND (b)<-[:DLL_PRV]-(:AbstractStructItem:DLListItem) AND NOT (b)-[:DLL_PRV]->(:AbstractStructItem:DLListItem) AND NOT (b)<-[:DLL_NXT]-(:AbstractStructItem:DLListItem) WITH b MATCH p=(b)-[:DLL_NXT*]->(:AbstractStructItem:DLListItem) DETACH DELETE p;")
+
+            entities_deleted = m1 + m2 + m3
+
         # If anything with a generic name still lingers on after this, delete it too.
         # Delete orphan simple variables
         neomodel.db.cypher_query("MATCH (a:ElementVariable) WHERE a.name=~'^[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]$' AND NOT ()-[]->(a) DELETE a;")
+
 
     def fsck(self, recover=False, deep=False):
         """

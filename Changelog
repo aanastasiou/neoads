@@ -4,6 +4,8 @@ Version 0.0.7
 * Added `keys, values` properties on `AbstractMap`
 * Added note about transactions in quickstart, reviewed Motivation section, 
   minor edits to other parts of documentation.
+* Revised the "garbage collection" operation to garbage collect arbitrarily
+  nested data structures
 
 
 Version 0.0.6 2023-04-15

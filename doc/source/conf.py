@@ -30,6 +30,7 @@ author = 'Athanasios Anastasiou'
 extensions = ["sphinx.ext.autodoc",
               "sphinxcontrib.images",
               "sphinx.ext.graphviz",
+              "sphinx_copybutton",
 ]
 
 # Add any paths that contain templates here, relative to this directory.

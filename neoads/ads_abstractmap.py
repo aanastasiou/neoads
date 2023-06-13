@@ -1,7 +1,37 @@
 """
 Definitions for the abstract set (``AbstractSet``) data structure.
 
-The module defines both end-user data structures as well as intermediate (or helper) data structures.
+An ``AbstractMap`` is represented in Neo4j as follows:
+
+.. graphviz::
+
+    digraph foo {
+        graph [
+            rankdir=LR
+        ]
+        node [
+              shape=record
+             ]
+
+        ADS_Map [
+            label = "{{a:AbstractMap|+name}}"
+            ]
+
+        ADS_KeySet [
+            label="{{b:AbstractSet|}}"
+        ]
+
+        ADS_ValuesSet [
+            label="{{c:AbstractSet|}}"
+        ]
+
+        ADS_Map -> ADS_KeySet [label=KEYS_SET]
+        ADS_Map -> ADS_ValuesSet [label=VALUES_SET]
+
+    }
+
+* Where ``AbstractSet`` is expanded as depicted `here <http://localhost:8000/api_abstractdatatypes.html#module-neoads.ads_abstractset>`_
+
 
 
 :author: Athanasios Anastasiou 

@@ -1,6 +1,39 @@
 """
 Definition of the ``AbstractSet``.
 
+An ``AbstractSet`` is represented in Neo4j as follows:
+
+.. graphviz::
+
+    digraph foo {
+        graph [
+            rankdir=LR
+        ]
+        node [
+              shape=record
+             ]
+
+        ADS_Set [
+            label = "{{a:AbstractSet|+name}}"
+            ]
+
+        ADS_SetItem [
+            label="{{b:SetItem|+ hash_value}}"
+        ]
+
+        ADS_ElementDomain [
+            label="{{c:PersistentElement|}}"
+        ]
+
+        ADS_Set -> ADS_SetItem [label=SET_ELEMENT headlabel="0..*"]
+        ADS_SetItem -> ADS_ElementDomain [label=ABSTRACT_STRUCT_ITEM_VALUE]
+
+    }
+
+* Where ``PersistentElement`` can be **ANY** entity in the data model deriving from ``PersistentElement``.
+  For more details please see :ref:`datamodeling` 
+
+
 :author: Athanasios Anastasiou 
 :date: Mar 2023
 
@@ -48,9 +81,6 @@ class AbstractSet(CompositeAbstract):
         (e.g. from_query). The key problem with that is that the item's hash_value cannot be set consistently (no
         similar function in APOC) at the server side.
 
-    
-    **TODO:** However, it might be possible to establish a hash-like user procedure in CYPHER at server side which could be
-    invoked by neoads to implement such queries server side too. (With APOC's sha this can definitely be done now)
     """
     elements = neomodel.RelationshipTo("SetItem", "SET_ELEMENT")
 
@@ -89,6 +119,9 @@ class AbstractSet(CompositeAbstract):
         self.refresh()
         return self
 
+    # TODO: MID, However, it might be possible to establish a hash-like user procedure in CYPHER at server side which could be
+    #       invoked by neoads to implement such queries server side too. (With APOC's sha this can definitely be done now)
+    #
     # def from_query(self, query, auto_reset=False):
     #     """
     #     Populates a Set from a query

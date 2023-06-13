@@ -1,7 +1,55 @@
 """
 Definitions for the abstract double linked list (``AbstractDLList``).
 
-The module defines both end-user data structures as well as intermediate (or helper) data structures.
+An ``AbstractDLList`` is represented in Neo4j with the following object diagram:
+
+.. graphviz::
+
+    digraph foo {
+        graph [
+            rankdir=LR
+        ]
+        node [
+              shape=record
+             ]
+
+        ADS_DLList [
+            label = "{{a:AbstractDLList|+head|+name}}"
+            ]
+
+        ADS_DLListItem1 [
+            label="{{b:DLListItem|nxt|prv|value}}"
+        ]
+
+        ADS_ElementDomain1 [
+            label="{{c:PersistentElement|}}"
+        ]
+
+        ADS_DLListItem2 [
+            label="{{d:DLListItem|nxt|prv|value}}"
+        ]
+
+        ADS_ElementDomain2 [
+            label="{{e:PersistentElement|}}"
+        ]
+        
+        ADS_DLList -> ADS_DLListItem1 [label="DLL_NXT"]
+        ADS_DLListItem1 -> ADS_DLListItem2 [label="DLL_NXT"]
+        ADS_DLListItem2 -> ADS_DLListItem1 [label="DLL_PRV"]
+        ADS_DLListItem1 -> ADS_ElementDomain1 [label="ABSTRACT_STRUCT_ITEM_VALUE"]
+        ADS_DLListItem2 -> ADS_ElementDomain2 [label="ABSTRACT_STRUCT_ITEM_VALUE"]
+    }
+
+
+* This diagram shows a double linked list with two elements.
+
+* Where ``PersistentElement`` can be **ANY** entity in the data model deriving from ``PersistentElement``.
+
+* The module defines both end-user data structures as well as intermediate (or helper) data structures.
+
+
+For more details please see :ref:`datamodeling` 
+
 
 
 :author: Athanasios Anastasiou 

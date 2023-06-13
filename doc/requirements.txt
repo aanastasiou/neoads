@@ -1,4 +1,5 @@
+neomodel
+pandas
 sphinx_copybutton
 sphinxcontrib-images
 pygraphviz
-sphinx

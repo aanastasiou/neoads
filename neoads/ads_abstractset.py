@@ -30,6 +30,7 @@ An ``AbstractSet`` is represented in Neo4j as follows:
 
     }
 
+
 * Where ``PersistentElement`` can be **ANY** entity in the data model deriving from ``PersistentElement``.
   For more details please see :ref:`datamodeling` 
 

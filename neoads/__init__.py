@@ -31,4 +31,3 @@ __author__ = 'Athanasios Anastasiou'
 __email__ = 'athanastasiou@gmail.com'
 __license__ = 'MIT'
 __package__ = 'neoads'
-__version__ = pkg_resources.get_distribution('neoads').version

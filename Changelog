@@ -6,6 +6,7 @@ Version 0.0.7
   minor edits to other parts of documentation.
 * Revised the "garbage collection" operation to garbage collect arbitrarily
   nested data structures
+* Migrated to RTD conf 2
 
 
 Version 0.0.6 2023-04-15

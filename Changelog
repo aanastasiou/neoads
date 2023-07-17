@@ -7,7 +7,7 @@ Version 0.0.7
 * Revised the "garbage collection" operation to garbage collect arbitrarily
   nested data structures
 * Migrated to RTD conf 2
-
+* Added pyproject.toml
 
 Version 0.0.6 2023-04-15
 

@@ -1,0 +1,45 @@
+[project]
+name = "neoads"
+version = "0.0.7"
+description = "Abstract Data Structures (Set, Map, Doubly Linked List) over the neo4j graph database."
+readme = "./README.rst"
+authors = [{name="Athanasios Anastasiou", email="athanastasiou@gmail.com"}]
+keywords=["graph", "neo4j", "ORM", "OGM", "ADS", "Data Structures", "Data Modelling"]
+classifiers= [
+  "Development Status :: 4 - Beta", 
+  "Intended Audience :: Developers", 
+  "Operating System :: OS Independent", 
+  "License :: OSI Approved :: MIT License", 
+  "Topic :: Software Development :: Libraries :: Python Modules", 
+  "Programming Language :: Python :: 3",
+  "Topic :: Database"
+]
+requires-python = ">=3.11"
+
+dependencies = [
+  "neomodel"
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest",
+  "pandas"
+]
+
+# license
+
+[project.urls]
+#Homepage = ""
+documentation = "https://neoads.readthedocs.io/en/latest/"
+repository = "https://github.com/aanastasiou/neoads/"
+changelog = "https://github.com/aanastasiou/neoads/blob/main/Changelog"
+
+[build-system]
+build-backend = 'setuptools.build_meta'
+requires = [
+    'setuptools',
+]
+
+[tool.setuptools]
+packages = ["neoads"]
+

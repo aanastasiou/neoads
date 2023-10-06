@@ -8,7 +8,7 @@ Abstact Data Structures over neo4j.
 import pkg_resources
 from .core import ElementDomain
 
-from .simple import SimpleNumber, SimpleDate
+from .simple import SimpleNumber, SimpleInteger, SimpleFloat, SimpleDate
 
 from .composite_array import (CompositeString, CompositeArrayString, CompositeArrayNumber,
                               CompositeArrayDate) 

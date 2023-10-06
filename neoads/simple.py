@@ -59,6 +59,38 @@ class SimpleNumber(VariableSimple):
             raise TypeError(f"SimpleNumber initialisation expects int or float received {type(value)}")
         super().__init__(value=float(value), name=name)
 
+
+class SimpleInteger(VariableSimple):
+    """
+    A typical single integer number.
+
+    :param value: An integer
+    :type value: neomodel.IntegerProperty
+
+    """
+    value = neomodel.IntegerProperty(index=True)
+
+    def __init__(self, value, name=None):
+        if not isinstance(value, int):
+            raise TypeError(f"SimpleInteger initialisation expects int received {type(value)}")
+        super().__init__(value=int(value), name=name)
+
+
+class SimpleFloat(VariableSimple):
+    """
+    A typical single Real number.
+
+    :param value: An integer
+    :type value: neomodel.FloatProperty
+
+    """
+    value = neomodel.FloatProperty(index=True)
+
+    def __init__(self, value, name=None):
+        if not isinstance(value, float):
+            raise TypeError(f"SimpleFloat initialisation expects float received {type(value)}")
+        super().__init__(value=float(value), name=name)
+
         
 
 class SimpleDate(VariableSimple):

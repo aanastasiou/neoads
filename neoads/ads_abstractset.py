@@ -173,8 +173,9 @@ class AbstractSet(CompositeAbstract):
         # TODO: HIGH Turn the static labels to dynamic ones
         the_hash_nodeid_list = str(a_hash_nodeid_list).replace("(", "[").replace(")", "]")
         this_set_name = self.name
+        this_set_labels = ":".join(self.labels())
 
-        self.cypher(f"MATCH (a_set:AbstractSet{{name:'{this_set_name}'}}) "
+        self.cypher(f"MATCH (a_set:{this_set_labels}{{name:'{this_set_name}'}}) "
                     f"WITH a_set,{the_hash_nodeid_list} AS hash_nodeid_list "
                     "UNWIND hash_nodeid_list AS hash_nodeid_item "
                     "MATCH (a_value_node) WHERE id(a_value_node)=hash_nodeid_item[1] "
@@ -216,9 +217,12 @@ class AbstractSet(CompositeAbstract):
         nme_left = self.name
         nme_right = other.name
 
-        is_equal, _ = self.cypher(f"MATCH (:AbstractSet{{name:'{nme_left}'}})-[:SET_ELEMENT]->(u:SetItem) "
+        lbl_left = ":".join(self.labels())
+        lbl_right = ":".join(other.labels())
+
+        is_equal, _ = self.cypher(f"MATCH (:{lbl_left}{{name:'{nme_left}'}})-[:SET_ELEMENT]->(u:SetItem) "
                                   "WITH u.hash_value AS u_hash ORDER BY u_hash "
-                                  f"MATCH (:AbstractSet{{name:'{nme_right}'}})-[:SET_ELEMENT]->(v:SetItem) "
+                                  f"MATCH (:{lbl_right}{{name:'{nme_right}'}})-[:SET_ELEMENT]->(v:SetItem) "
                                   "WITH collect(u_hash) AS u_hash_array, v.hash_value AS v_hash ORDER BY v_hash "
                                   "RETURN u_hash_array=collect(v_hash)")
         # Alternatively, to push even the length check to the server, the query could be changed slightly to first form
@@ -245,7 +249,7 @@ class AbstractSet(CompositeAbstract):
 
         self._pre_action_check("__or__")
         other._pre_action_check("__or__")
-        new_set = AbstractSet().save()
+        new_set = self.__class_().save()
         if len(self)==0:
             new_set.from_abstractset(other, auto_reset=True)
         else:
@@ -253,10 +257,12 @@ class AbstractSet(CompositeAbstract):
 
         this_set_name = new_set.name
         other_set_name = other.name
+        this_set_labels = ":".join(new_set.labels())
+        other_set_labels = ":".join(self.labels())
         # TODO: HIGH, Turn static labels to dynamic ones
-        self.cypher(f"MATCH (this_set:AbstractSet{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(this_set_item:AbstractStructItem) "
+        self.cypher(f"MATCH (this_set:{this_set_labels}{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(this_set_item:AbstractStructItem) "
                     "WITH this_set,COLLECT(this_set_item.hash_value) AS this_set_hash_nums "
-                    f"MATCH (other_set:AbstractSet{{name:'{other_set_name}'}})-[:SET_ELEMENT]->(other_set_item:AbstractStructItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value_node) "
+                    f"MATCH (other_set:{other_set_labels}{{name:'{other_set_name}'}})-[:SET_ELEMENT]->(other_set_item:AbstractStructItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value_node) "
                     "WHERE NOT other_set_item.hash_value IN this_set_hash_nums "
                     "CREATE (this_set)-[:SET_ELEMENT]->(:AbstractStructItem:SetItem{hash_value:other_set_item.hash_value})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value_node);")
         new_set.refresh()
@@ -275,12 +281,15 @@ class AbstractSet(CompositeAbstract):
 
         self._pre_action_check("__and__")
         other._pre_action_check("__and__")
-        new_set = AbstractSet().save()
+        new_set = self.__class__().save()
         this_set_name = self.name
         other_set_name = other.name
         new_set_name = new_set.name
+        this_set_labels = ":".join(self.labels())
+        other_set_labels = ":".join(other.labels())
+        new_set_labels = ":".join(new_set.labels())
         # TODO; HIGH, Turn static labels to dynamic ones
-        self.cypher(f"MATCH (this_set:AbstractSet{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(an_element:AbstractStructItem:SetItem) WITH COLLECT(an_element.hash_value) as this_set_hash_values MATCH (other_set:AbstractSet{{name:'{other_set_name}'}})-[:SET_ELEMENT]->(another_element:AbstractStructItem:SetItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_set_value) WHERE another_element.hash_value IN this_set_hash_values WITH another_element,a_set_value MATCH (new_set:AbstractSet{{name:'{new_set_name}'}}) CREATE (new_set)-[:SET_ELEMENT]->(:AbstractStructItem:SetItem{{hash_value:another_element.hash_value}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_set_value)")
+        self.cypher(f"MATCH (this_set:{this_set_labels}{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(an_element:AbstractStructItem:SetItem) WITH COLLECT(an_element.hash_value) as this_set_hash_values MATCH (other_set:{other_set_labels}{{name:'{other_set_name}'}})-[:SET_ELEMENT]->(another_element:AbstractStructItem:SetItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_set_value) WHERE another_element.hash_value IN this_set_hash_values WITH another_element,a_set_value MATCH (new_set:{new_set_labels}{{name:'{new_set_name}'}}) CREATE (new_set)-[:SET_ELEMENT]->(:AbstractStructItem:SetItem{{hash_value:another_element.hash_value}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_set_value)")
         new_set.refresh()
         return new_set
 
@@ -302,8 +311,11 @@ class AbstractSet(CompositeAbstract):
         other_set_name = other.name
         this_set_name = self.name
         new_set_name = new_set.name
+        other_set_labels = ":".join(other.labels())
+        this_set_labels = ":".join(self.labels())
+        new_set_labels = ":".join(new_set.labels())
         # TODO; HIGH, Turn static labels to dynamic ones
-        self.cypher(f"MATCH (other_set:AbstractSet{{name:'{other_set_name}'}})-[:SET_ELEMENT]->(other_element:AbstractStructItem:SetItem) WITH COLLECT(other_element.hash_value) AS other_set_hash_values MATCH (this_set:AbstractSet{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(this_element:AbstractStructItem:SetItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value) WHERE NOT this_element.hash_value IN other_set_hash_values WITH this_element, a_value MATCH (new_set:AbstractSet{{name:'{new_set_name}'}}) CREATE (new_set)-[:SET_ELEMENT]->(:AbstractStructItem:SetItem{{hash_value:this_element.hash_value}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value)")
+        self.cypher(f"MATCH (other_set:{other_set_labels}{{name:'{other_set_name}'}})-[:SET_ELEMENT]->(other_element:AbstractStructItem:SetItem) WITH COLLECT(other_element.hash_value) AS other_set_hash_values MATCH (this_set:{this_set_labels}{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(this_element:AbstractStructItem:SetItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value) WHERE NOT this_element.hash_value IN other_set_hash_values WITH this_element, a_value MATCH (new_set:{new_set_labels}{{name:'{new_set_name}'}}) CREATE (new_set)-[:SET_ELEMENT]->(:AbstractStructItem:SetItem{{hash_value:this_element.hash_value}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value)")
         new_set.refresh()
         return new_set
 
@@ -325,18 +337,21 @@ class AbstractSet(CompositeAbstract):
         other_set_name = other.name
         this_set_name = self.name
         new_set_name = new_set.name
+        other_set_labels = ":".join(other.labels())
+        this_set_labels = ":".join(self.labels())
+        new_set_labels = ":".join(new_set.labels())
 
         # Symmetric difference implemented as two difference queries here (A-B)|(B-A)
         # A-B        
         # TODO; HIGH, Turn static labels to dynamic ones
-        self.cypher(f"MATCH (other_set:AbstractSet{{name:'{other_set_name}'}})-[:SET_ELEMENT]->(other_element:AbstractStructItem:SetItem) WITH COLLECT(other_element.hash_value) AS other_set_hash_values MATCH (this_set:AbstractSet{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(this_element:AbstractStructItem:SetItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value) WHERE NOT this_element.hash_value IN other_set_hash_values WITH this_element, a_value MATCH (new_set:AbstractSet{{name:'{new_set_name}'}}) CREATE (new_set)-[:SET_ELEMENT]->(:AbstractStructItem:SetItem{{hash_value:this_element.hash_value}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value)")
+        self.cypher(f"MATCH (other_set:{other_set_labels}{{name:'{other_set_name}'}})-[:SET_ELEMENT]->(other_element:AbstractStructItem:SetItem) WITH COLLECT(other_element.hash_value) AS other_set_hash_values MATCH (this_set:{this_set_labels}{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(this_element:AbstractStructItem:SetItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value) WHERE NOT this_element.hash_value IN other_set_hash_values WITH this_element, a_value MATCH (new_set:{new_set_labels}{{name:'{new_set_name}'}}) CREATE (new_set)-[:SET_ELEMENT]->(:AbstractStructItem:SetItem{{hash_value:this_element.hash_value}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value)")
 
         other_set_name = self.name
         this_set_name = other.name
 
         # B-A
         # TODO; HIGH, Turn static labels to dynamic ones
-        self.cypher(f"MATCH (other_set:AbstractSet{{name:'{other_set_name}'}})-[:SET_ELEMENT]->(other_element:AbstractStructItem:SetItem) WITH COLLECT(other_element.hash_value) as other_set_hash_values MATCH (this_set:AbstractSet{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(this_element:AbstractStructItem:SetItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value) WHERE NOT this_element.hash_value IN other_set_hash_values WITH this_element, a_value MATCH (new_set:AbstractSet{{name:'{new_set_name}'}}) CREATE (new_set)-[:SET_ELEMENT]->(:AbstractStructItem:SetItem{{hash_value:this_element.hash_value}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value)")
+        self.cypher(f"MATCH (other_set:{other_set_labels}{{name:'{other_set_name}'}})-[:SET_ELEMENT]->(other_element:AbstractStructItem:SetItem) WITH COLLECT(other_element.hash_value) as other_set_hash_values MATCH (this_set:{this_set_labels}{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(this_element:AbstractStructItem:SetItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value) WHERE NOT this_element.hash_value IN other_set_hash_values WITH this_element, a_value MATCH (new_set:{new_set_labels}{{name:'{new_set_name}'}}) CREATE (new_set)-[:SET_ELEMENT]->(:AbstractStructItem:SetItem{{hash_value:this_element.hash_value}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(a_value)")
         
         # The queries operate on the same "new_set"
         new_set.refresh()
@@ -352,11 +367,12 @@ class AbstractSet(CompositeAbstract):
         """
         # self._pre_action_check("delete")
         nme = self.name
+        this_set_labels = ":".join(self.labels())
         itm_hash = a_hash
 
         # TODO; HIGH, Turn static labels to dynamic ones
         # NOTE: Hash operations need '{itm_hash:x}' because hash is a string
-        return len(self.cypher(f"MATCH (a_set:AbstractSet{{name:'{nme}'}})-[:SET_ELEMENT]->(an_element:SetItem) WHERE an_element.hash_value='{itm_hash:x}' RETURN an_element")[0]) > 0
+        return len(self.cypher(f"MATCH (a_set:{this_set_labels}{{name:'{nme}'}})-[:SET_ELEMENT]->(an_element:SetItem) WHERE an_element.hash_value='{itm_hash:x}' RETURN an_element")[0]) > 0
 
     def __contains__(self, an_item):
         """
@@ -430,9 +446,10 @@ class AbstractSet(CompositeAbstract):
         """
         if self.contains_hash(a_hash):
             nme = self.name
+            this_set_labels = ":".join(self.labels())
             itm_hash = a_hash
             # TODO; HIGH, Turn static labels to dynamic ones
-            return self.cypher(f"MATCH (a_set:AbstractSet{{name:'{nme}'}})-[:SET_ELEMENT]->(an_element:SetItem) WHERE an_element.hash_value='{itm_hash:x}' return an_element")[0][0]
+            return self.cypher(f"MATCH (a_set:{this_set_labels}{{name:'{nme}'}})-[:SET_ELEMENT]->(an_element:SetItem) WHERE an_element.hash_value='{itm_hash:x}' return an_element")[0][0]
         raise KeyError(f"AbstractSet does not contain item with hash {a_hash:x}")
 
     def remove_by_hash(self, a_hash):
@@ -449,9 +466,10 @@ class AbstractSet(CompositeAbstract):
         """
         if self.contains_hash(a_hash):
             nme = self.name
+            this_set_labels = ":".join(self.labels())
             itm_hash = a_hash
             # TODO; HIGH, Turn static labels to dynamic ones
-            self.cypher(f"MATCH (a_set:AbstractSet{{name:'{nme}'}})-[:SET_ELEMENT]->(an_element:SetItem) WHERE an_element.hash_value='{itm_hash:x}' DETACH DELETE an_element")
+            self.cypher(f"MATCH (a_set:{this_set_labels}{{name:'{nme}'}})-[:SET_ELEMENT]->(an_element:SetItem) WHERE an_element.hash_value='{itm_hash:x}' DETACH DELETE an_element")
         else:
             raise KeyError(f"AbstractSet does not contain item with hash {a_hash:x}")
         return self
@@ -481,9 +499,10 @@ class AbstractSet(CompositeAbstract):
         Clears the set.
         """
         nme = self.name
+        this_set_labels = ":".join(self.labels())
         # TODO: HIGH, Turn static labels to dynamic ones
         self._pre_action_check("clear")
-        self.cypher(f"MATCH (a_set:AbstractSet{{name:'{nme}'}})-[r1:SET_ELEMENT]->(el_item:SetItem)-[r2:ABSTRACT_STRUCT_ITEM_VALUE]->() DETACH DELETE r2,el_item,r1")
+        self.cypher(f"MATCH (a_set:{this_set_labels}{{name:'{nme}'}})-[r1:SET_ELEMENT]->(el_item:SetItem)-[r2:ABSTRACT_STRUCT_ITEM_VALUE]->() DETACH DELETE r2,el_item,r1")
 
     def destroy(self):
         """

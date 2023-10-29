@@ -113,8 +113,9 @@ class AbstractDLList(CompositeAbstract):
         """
         self._pre_action_check('clear')
         nme = self.name
+        this_list_labels = ":".join(self.labels())
         # TODO; HIGH, Turn static labels to dynamic ones
-        self.cypher(f"MATCH (a_list:AbstractDLList{{name:'{nme}'}})-[:DLL_NXT*]-(data_item:DLListItem) DETACH DELETE data_item")
+        self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{nme}'}})-[:DLL_NXT*]-(data_item:DLListItem) DETACH DELETE data_item")
         self.length = 0
         self.save()
 
@@ -214,16 +215,16 @@ class AbstractDLList(CompositeAbstract):
         if projected_field is None:
 
             nme = self.name
-            labels = ":".join(self.labels())
+            this_list_labels = ":".join(self.labels())
             listIdentifier = this_list_known_as
             projectedField = projected_field
             projectionKnownAs = projection_known_as
 
             # TODO; HIGH, Turn static labels to dynamic ones
-            item_query = f"MATCH ({listIdentifier}:{labels}{{name:'{nme}'}}) WITH {listIdentifier} MATCH ({listIdentifier})-[:DLL_NXT*]->({listIdentifier}_listItem:DLListItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->({listIdentifier}_listItemValue) WITH collect(id({listIdentifier}_listItemValue)) as {projectionKnownAs}  "
+            item_query = f"MATCH ({listIdentifier}:{this_list_labels}{{name:'{nme}'}}) WITH {listIdentifier} MATCH ({listIdentifier})-[:DLL_NXT*]->({listIdentifier}_listItem:DLListItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->({listIdentifier}_listItemValue) WITH collect(id({listIdentifier}_listItemValue)) as {projectionKnownAs}  "
         else:
             # TODO; HIGH, Turn static labels to dynamic ones
-            item_query = "MATCH ({listIdentifier}:{labels}{{name:'{nme}'}}) WITH {listIdentifier} MATCH ({listIdentifier})-[:DLL_NXT*]->({listIdentifier}_listItem:DLListItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->({listIdentifier}_listItemValue) WITH collect({listIdentifier}_listItemValue.{projectedField}) as {projectionKnownAs}  "
+            item_query = "MATCH ({listIdentifier}:{this_list_labels}{{name:'{nme}'}}) WITH {listIdentifier} MATCH ({listIdentifier})-[:DLL_NXT*]->({listIdentifier}_listItem:DLListItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->({listIdentifier}_listItemValue) WITH collect({listIdentifier}_listItemValue.{projectedField}) as {projectionKnownAs}  "
         # If there are pass through variables add them in the final query
         if pass_through is not None:
             pass_through_items = ",".join(pass_through)
@@ -246,11 +247,12 @@ class AbstractDLList(CompositeAbstract):
         #",{}".format(",".join(other_lists)) if other_lists is not None else "")
 
         nme = self.name
+        this_list_labels =  ":".join(labels())
         list_known_as = this_list_known_as
         other_lists = ",{','.join(other_lists) if other_lists is not None else ''}"
 
         # TODO: HIGH, Propagate the lists correctly.
-        return f"MATCH (aList:AbstractDLList{{name:'{nme}'}}) WITH aList{other_lists} MATCH (aList)-[:DLL_NXT*]->(:DLListItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(aList_listItemValue) WITH collect(aList_listItemValue) AS {list_known_as}{other_lists}"
+        return f"MATCH (aList:{this_list_labels}{{name:'{nme}'}}) WITH aList{other_lists} MATCH (aList)-[:DLL_NXT*]->(:DLListItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(aList_listItemValue) WITH collect(aList_listItemValue) AS {list_known_as}{other_lists}"
 
     def iterate_by_query(self, this_list_known_as):
         """
@@ -283,7 +285,8 @@ class AbstractDLList(CompositeAbstract):
         """
         # TODO: HIGH, Must verify if this match does indeed reach all of the items in the list or it skips the last one.
         # TODO; HIGH, Turn static labels to dynamic ones
-        return f"MATCH ({listIdentifier}:AbstractDLList{{name:'{self.name}'}}) WITH {this_list_known_as} MATCH ({this_list_known_as})-[:DLL_NXT*]->({this_list_known_as}_listItem:DLListItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->({this_list_known_as}_listItemValue) WITH {this_list_known_as}_listItemValue "
+        this_list_labels = ":".join(self.labels())
+        return f"MATCH ({listIdentifier}:{this_list_labels}{{name:'{self.name}'}}) WITH {this_list_known_as} MATCH ({this_list_known_as})-[:DLL_NXT*]->({this_list_known_as}_listItem:DLListItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->({this_list_known_as}_listItemValue) WITH {this_list_known_as}_listItemValue "
 
     def extend_by_merging(self,another_dlList):
         """
@@ -306,7 +309,8 @@ class AbstractDLList(CompositeAbstract):
             # Retrieve the tail STRUCT item of THIS list.
             # The tail struct item has DLL_PRV but no DLL_NXT
             # TODO; HIGH, Turn static labels to dynamic ones
-            this_list_tail_item = DLListItem.inflate(self.cypher(f"MATCH (a_list:AbstractDLList{{name:'{self.name}'}})-[:DLL_NXT*]-(data_item:DLListItem) WHERE NOT (data_item)-[:DLL_NXT]->() RETURN data_item")[0][0][0])
+            this_list_labels = ":".join(self.labels())
+            this_list_tail_item = DLListItem.inflate(self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{self.name}'}})-[:DLL_NXT*]-(data_item:DLListItem) WHERE NOT (data_item)-[:DLL_NXT]->() RETURN data_item")[0][0][0])
             # Retrieve the head STRUCT item of the other list.
             # The head item is readily available
             other_list_head_item = other_list.head[0]
@@ -316,7 +320,8 @@ class AbstractDLList(CompositeAbstract):
             # Adjust the length of this list.
             self.length += other_list.length
             # Delete the **ENTRY** of the other list
-            other_list.cypher(f"MATCH (a:AbstractDLList{{name:'{other_list.name}'}}) "
+            other_list_labels = ":".join(other_list.labels())
+            other_list.cypher(f"MATCH (a:{other_list_labels}{{name:'{other_list.name}'}}) "
                               "DETACH DELETE a")
             # Update this list so that its length gets written back
             self.save()
@@ -329,7 +334,8 @@ class AbstractDLList(CompositeAbstract):
                 self.length = other_list.length
                 # Get rid of the other list's entry ONLY! (delete vs destroy)
                 # Delete the **ENTRY** of the other list
-                other_list.cypher(f"MATCH (a:AbstractDLList{{name:'{other_list.name}'}}) "
+                other_list_labels = ":".join(other_list.labels())
+                other_list.cypher(f"MATCH (a:{other_list_labels}{{name:'{other_list.name}'}}) "
                                   "DETACH DELETE a")
             # Update the info of this list
                 self.save()
@@ -364,7 +370,8 @@ class AbstractDLList(CompositeAbstract):
             # Find the tail
             # TODO: HIGH, Reduce duplication here by adding a _get_tail() to AbstractDLList or alternatively establish
             #       two pointers for faster operation
-            this_list_tail_item = DLListItem.inflate(self.cypher(f"MATCH (a_list:AbstractDLList{{name:'{self.name}'}})-[:DLL_NXT*]-(data_item:DLListItem) "
+            this_list_labels = ":".join(self.labels())
+            this_list_tail_item = DLListItem.inflate(self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{self.name}'}})-[:DLL_NXT*]-(data_item:DLListItem) "
                                                                  "WHERE NOT (data_item)-[:DLL_NXT]->() RETURN data_item")[0][0][0])
             # Connect it to the list (so that the new element becomes the list's tail)
             this_list_tail_item.nxt.connect(new_list_item)
@@ -415,7 +422,8 @@ class AbstractDLList(CompositeAbstract):
 
         # TODO; HIGH, Turn static labels to dynamic ones
         # Ensure initial conditions on the present list
-        self.cypher(f"MATCH (a_list:AbstractDLList:CompositeAbstract:VariableComposite:ElementVariable:PersistentElement{{name:'{self.name}'}}) SET a_list.length=0")
+        this_list_labels = ":".join(self.labels())
+        self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{self.name}'}}) SET a_list.length=0")
         # Create list items and index them sequentially
         #.format(**{"nme" : self.name,"match_query":query,"dup_removal":dprem_query_fragment[no_duplicates]})
         nme = self.name
@@ -423,20 +431,28 @@ class AbstractDLList(CompositeAbstract):
         dup_removal = dprem_query_fragment[no_duplicates]
 
         # TODO: HIGH, if match_query contains WITH it must be ensured that aList is propagated in that query, otherwise this would fail (see also from_id_array)
-        self.cypher(f"MATCH (a_list:AbstractDLList:CompositeAbstract:VariableComposite:ElementVariable:PersistentElement{{name:'{nme}'}}) WITH a_list {match_query} WITH a_list, ListItem{dup_removal} CREATE (a_list)-[:TEMP_LINK{{of_list:a_list.name,item_id:a_list.length}}]->(an_item:DLListItem:AbstractStructItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(ListItem) SET a_list.length=a_list.length+1")
+        self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{nme}'}}) WITH a_list {match_query} WITH a_list, ListItem{dup_removal} CREATE (a_list)-[:TEMP_LINK{{of_list:a_list.name,item_id:a_list.length}}]->(an_item:DLListItem:AbstractStructItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(ListItem) SET a_list.length=a_list.length+1")
+        import pdb
+        pdb.set_trace()
         
         # Create the double linked list connections
         # Create forwards connections
-        self.cypher(f"MATCH (a_list:AbstractDLList:CompositeAbstract:VariableComposite:ElementVariable:PersistentElement{{name:'{self.name}'}})-[r1:TEMP_LINK{{of_list:a_list.name}}]->(this_item:DLListItem:AbstractStructItem) WHERE r1.item_id<a_list.length WITH a_list,r1,this_item MATCH (a_list)-[r2:TEMP_LINK{{of_list:a_list.name}}]->(next_item:DLListItem:AbstractStructItem) WHERE r2.item_id=r1.item_id+1 CREATE (this_item)-[:DLL_NXT]->(next_item)")
+        self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{self.name}'}})-[r1:TEMP_LINK{{of_list:a_list.name}}]->(this_item:DLListItem:AbstractStructItem) WHERE r1.item_id<a_list.length WITH a_list,r1,this_item MATCH (a_list)-[r2:TEMP_LINK{{of_list:a_list.name}}]->(next_item:DLListItem:AbstractStructItem) WHERE r2.item_id=r1.item_id+1 CREATE (this_item)-[:DLL_NXT]->(next_item)")
 
         # Create backwards connections
-        self.cypher(f"MATCH (a_list:AbstractDLList:CompositeAbstract:VariableComposite:ElementVariable:PersistentElement{{name:'{self.name}'}})-[r1:TEMP_LINK{{of_list:a_list.name}}]->(this_item:DLListItem:AbstractStructItem) WHERE r1.item_id>0 WITH a_list,r1,this_item MATCH (a_list)-[r2:TEMP_LINK{{of_list:a_list.name}}]->(previous_item:DLListItem:AbstractStructItem) WHERE r2.item_id=r1.item_id-1 CREATE (this_item)-[:DLL_PRV]->(previous_item)")
-
+        self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{self.name}'}})-[r1:TEMP_LINK{{of_list:a_list.name}}]->(this_item:DLListItem:AbstractStructItem) WHERE r1.item_id>0 WITH a_list,r1,this_item MATCH (a_list)-[r2:TEMP_LINK{{of_list:a_list.name}}]->(previous_item:DLListItem:AbstractStructItem) WHERE r2.item_id=r1.item_id-1 CREATE (this_item)-[:DLL_PRV]->(previous_item)")
+        
+        import pdb
+        pdb.set_trace()
+        
         # Connect the items to the head of the list
-        self.cypher(f"MATCH (a_list:AbstractDLList{{name:'{self.name}'}})-[r:TEMP_LINK{{of_list:a_list.name,item_id:0}}]->(a_list_item:DLListItem) WITH a_list,a_list_item CREATE (a_list)-[:DLL_NXT]->(a_list_item)")
+        self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{self.name}'}})-[r:TEMP_LINK{{of_list:a_list.name,item_id:0}}]->(a_list_item:DLListItem) WITH a_list,a_list_item CREATE (a_list)-[:DLL_NXT]->(a_list_item)")
 
+        import pdb
+        pdb.set_trace()
+        
         # Delete the temporary links
-        self.cypher(f"MATCH (a_list:AbstractDLList{{name:'{self.name}'}})-[r:TEMP_LINK{{of_list:a_list.name}}]->(:DLListItem) DELETE r")
+        self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{self.name}'}})-[r:TEMP_LINK{{of_list:a_list.name}}]->(:DLListItem) DELETE r")
         # Now, length has changed, so this entity needs to be refreshed
         self.refresh()
         return self

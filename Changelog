@@ -1,6 +1,6 @@
 Version 0.0.8
 * Added SimpleInteger and SimpleFloat
-
+* Updated use of `id` to `element_id` as per `neomodel` 's current status
 
 Version 0.0.7
 

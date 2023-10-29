@@ -252,9 +252,9 @@ class AbstractMap(CompositeAbstract):
             # Pre-compute the hash values
             hash_values = [f"{an_object._neoads_hash():x}" for an_object in keyvalue_list[0][0][0]]
             # Build the key set
-            self.keys_set[0].from_hash_nodeid_list(list(zip(hash_values, [an_object.id for an_object in keyvalue_list[0][0][0]])), auto_reset=True)
+            self.keys_set[0].from_hash_nodeid_list(list(zip(hash_values, [an_object.element_id for an_object in keyvalue_list[0][0][0]])), auto_reset=True)
             # Build the value set
-            self.values_set[0].from_hash_nodeid_list(list(zip(hash_values, [an_object.id for an_object in keyvalue_list[0][1][0]])), auto_reset=True)
+            self.values_set[0].from_hash_nodeid_list(list(zip(hash_values, [an_object.element_id for an_object in keyvalue_list[0][1][0]])), auto_reset=True)
             self.refresh()
         return self
 

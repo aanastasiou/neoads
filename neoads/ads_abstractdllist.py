@@ -431,26 +431,25 @@ class AbstractDLList(CompositeAbstract):
         dup_removal = dprem_query_fragment[no_duplicates]
 
         # TODO: HIGH, if match_query contains WITH it must be ensured that aList is propagated in that query, otherwise this would fail (see also from_id_array)
-        self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{nme}'}}) WITH a_list {match_query} WITH a_list, ListItem{dup_removal} CREATE (a_list)-[:TEMP_LINK{{of_list:a_list.name,item_id:a_list.length}}]->(an_item:DLListItem:AbstractStructItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(ListItem) SET a_list.length=a_list.length+1")
-        import pdb
-        pdb.set_trace()
+        # self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{nme}'}}) WITH a_list {match_query} WITH a_list, ListItem{dup_removal} CREATE (a_list)-[:TEMP_LINK{{of_list:a_list.name,item_id:a_list.length}}]->(an_item:DLListItem:AbstractStructItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(ListItem) SET a_list.length=a_list.length+1")
+        self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{nme}'}}) WITH a_list {match_query} WITH a_list, collect(ListItem) as lids " 
+                    f"UNWIND [k in range(0, size(lids)-1) | [a_list, k, lids[k]]] as node_data "
+                    f"WITH node_data[0] AS origin, node_data[1] AS list_item_idx, node_data[2] AS list_item "
+                    f"CREATE (origin)-[:TEMP_LINK{{of_list:origin.name,item_id:list_item_idx}}]->(:DLListItem:AbstractStructItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(list_item)")
         
         # Create the double linked list connections
         # Create forwards connections
-        self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{self.name}'}})-[r1:TEMP_LINK{{of_list:a_list.name}}]->(this_item:DLListItem:AbstractStructItem) WHERE r1.item_id<a_list.length WITH a_list,r1,this_item MATCH (a_list)-[r2:TEMP_LINK{{of_list:a_list.name}}]->(next_item:DLListItem:AbstractStructItem) WHERE r2.item_id=r1.item_id+1 CREATE (this_item)-[:DLL_NXT]->(next_item)")
+        #self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{self.name}'}})-[r1:TEMP_LINK{{of_list:a_list.name}}]->(this_item:DLListItem:AbstractStructItem) WHERE r1.item_id<a_list.length WITH a_list,r1,this_item MATCH (a_list)-[r2:TEMP_LINK{{of_list:a_list.name}}]->(next_item:DLListItem:AbstractStructItem) WHERE r2.item_id=r1.item_id+1 CREATE (this_item)-[:DLL_NXT]->(next_item)")
 
+        self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{self.name}'}})-[r1:TEMP_LINK{{of_list:a_list.name}}]->(this_item:DLListItem:AbstractStructItem) "
+                    f"WITH a_list,r1,this_item MATCH (a_list)-[r2:TEMP_LINK{{of_list:a_list.name}}]->(next_item:DLListItem:AbstractStructItem) "
+                    f"WHERE r2.item_id=r1.item_id+1 CREATE (this_item)-[:DLL_NXT]->(next_item)")
         # Create backwards connections
         self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{self.name}'}})-[r1:TEMP_LINK{{of_list:a_list.name}}]->(this_item:DLListItem:AbstractStructItem) WHERE r1.item_id>0 WITH a_list,r1,this_item MATCH (a_list)-[r2:TEMP_LINK{{of_list:a_list.name}}]->(previous_item:DLListItem:AbstractStructItem) WHERE r2.item_id=r1.item_id-1 CREATE (this_item)-[:DLL_PRV]->(previous_item)")
-        
-        import pdb
-        pdb.set_trace()
         
         # Connect the items to the head of the list
         self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{self.name}'}})-[r:TEMP_LINK{{of_list:a_list.name,item_id:0}}]->(a_list_item:DLListItem) WITH a_list,a_list_item CREATE (a_list)-[:DLL_NXT]->(a_list_item)")
 
-        import pdb
-        pdb.set_trace()
-        
         # Delete the temporary links
         self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{self.name}'}})-[r:TEMP_LINK{{of_list:a_list.name}}]->(:DLListItem) DELETE r")
         # Now, length has changed, so this entity needs to be refreshed

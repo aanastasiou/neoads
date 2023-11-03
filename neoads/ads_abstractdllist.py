@@ -114,7 +114,7 @@ class AbstractDLList(CompositeAbstract):
         self._pre_action_check('clear')
         nme = self.name
         this_list_labels = ":".join(self.labels())
-        # TODO; HIGH, Turn static labels to dynamic ones
+        # TODO: Notice here that queries use static labels on the auxiliary objects (e.g. DLListItem). This means that it they were to be extended, the queries would pick the generic class and not the specific. The top level object though use all of its labels and therefore matches the specific list. This does not cause problems as long as the elements that compose the structure of the list do not need to be overriden
         self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{nme}'}})-[:DLL_NXT*]-(data_item:DLListItem) DETACH DELETE data_item")
         self.length = 0
         self.save()
@@ -137,7 +137,6 @@ class AbstractDLList(CompositeAbstract):
             raise IndexError(f"Index {item_index} out of bounds in a list of length {self.length}")
         #.format(**{"idx": item_index + 1, "self": "{self}"})
         idx = item_index + 1 # The 'item+1' is required to offset the hop from the head to the first item.
-        # TODO; HIGH, Turn static labels to dynamic ones
         list_record = self.cypher(f"MATCH (a)-[:DLL_NXT*{idx}]->(b:DLListItem) WHERE ID(a)=$self RETURN b")
         item_value = DLListItem.inflate(list_record[0][0][0])
         # TODO: HIGH, This must return the actual object
@@ -159,7 +158,6 @@ class AbstractDLList(CompositeAbstract):
             raise IndexError(f"Index {item_index} out of bounds in a list of length {self.length}")
             # The 'item+1' is required to offset the hop from the head to the first item.
         # First of all locate the item ...
-        # TODO; HIGH, Turn static labels to dynamic ones
         list_record = self.cypher(f"MATCH (a)-[:DLL_NXT*{item_index + 1}]->(b:DLListItem) WHERE ID(a)=$self RETURN b")
         item_object = DLListItem.inflate(list_record[0][0][0])
         # ...disconnect it from the list depending on its location...
@@ -220,10 +218,8 @@ class AbstractDLList(CompositeAbstract):
             projectedField = projected_field
             projectionKnownAs = projection_known_as
 
-            # TODO; HIGH, Turn static labels to dynamic ones
             item_query = f"MATCH ({listIdentifier}:{this_list_labels}{{name:'{nme}'}}) WITH {listIdentifier} MATCH ({listIdentifier})-[:DLL_NXT*]->({listIdentifier}_listItem:DLListItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->({listIdentifier}_listItemValue) WITH collect(id({listIdentifier}_listItemValue)) as {projectionKnownAs}  "
         else:
-            # TODO; HIGH, Turn static labels to dynamic ones
             item_query = "MATCH ({listIdentifier}:{this_list_labels}{{name:'{nme}'}}) WITH {listIdentifier} MATCH ({listIdentifier})-[:DLL_NXT*]->({listIdentifier}_listItem:DLListItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->({listIdentifier}_listItemValue) WITH collect({listIdentifier}_listItemValue.{projectedField}) as {projectionKnownAs}  "
         # If there are pass through variables add them in the final query
         if pass_through is not None:
@@ -284,7 +280,6 @@ class AbstractDLList(CompositeAbstract):
         :type this_list_known_as: str
         """
         # TODO: HIGH, Must verify if this match does indeed reach all of the items in the list or it skips the last one.
-        # TODO; HIGH, Turn static labels to dynamic ones
         this_list_labels = ":".join(self.labels())
         return f"MATCH ({listIdentifier}:{this_list_labels}{{name:'{self.name}'}}) WITH {this_list_known_as} MATCH ({this_list_known_as})-[:DLL_NXT*]->({this_list_known_as}_listItem:DLListItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->({this_list_known_as}_listItemValue) WITH {this_list_known_as}_listItemValue "
 
@@ -308,7 +303,6 @@ class AbstractDLList(CompositeAbstract):
         if len(self) > 0 and len(other_list) > 0:
             # Retrieve the tail STRUCT item of THIS list.
             # The tail struct item has DLL_PRV but no DLL_NXT
-            # TODO; HIGH, Turn static labels to dynamic ones
             this_list_labels = ":".join(self.labels())
             this_list_tail_item = DLListItem.inflate(self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{self.name}'}})-[:DLL_NXT*]-(data_item:DLListItem) WHERE NOT (data_item)-[:DLL_NXT]->() RETURN data_item")[0][0][0])
             # Retrieve the head STRUCT item of the other list.
@@ -420,7 +414,6 @@ class AbstractDLList(CompositeAbstract):
 
         dprem_query_fragment = {False:"",True:",count(ListItem) as ListItem_CNT "}
 
-        # TODO; HIGH, Turn static labels to dynamic ones
         # Ensure initial conditions on the present list
         this_list_labels = ":".join(self.labels())
         self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{self.name}'}}) SET a_list.length=0")

@@ -425,8 +425,12 @@ class AbstractDLList(CompositeAbstract):
 
         # TODO: HIGH, if match_query contains WITH it must be ensured that aList is propagated in that query, otherwise this would fail (see also from_id_array)
         # self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{nme}'}}) WITH a_list {match_query} WITH a_list, ListItem{dup_removal} CREATE (a_list)-[:TEMP_LINK{{of_list:a_list.name,item_id:a_list.length}}]->(an_item:DLListItem:AbstractStructItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(ListItem) SET a_list.length=a_list.length+1")
-        self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{nme}'}}) WITH a_list {match_query} WITH a_list, collect(ListItem) as lids " 
-                    f"UNWIND [k in range(0, size(lids)-1) | [a_list, k, lids[k]]] as node_data "
+        # self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{nme}'}}) WITH a_list {match_query} WITH a_list, collect(ListItem) as lids " 
+        #             f"UNWIND [k in range(0, size(lids)-1) | [a_list, k, lids[k]]] as node_data "
+        #             f"WITH node_data[0] AS origin, node_data[1] AS list_item_idx, node_data[2] AS list_item "
+        #             f"CREATE (origin)-[:TEMP_LINK{{of_list:origin.name,item_id:list_item_idx}}]->(:DLListItem:AbstractStructItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(list_item)")
+        self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{nme}'}}) WITH a_list {match_query} WITH a_list, collect(ListItem) as lids SET a_list.length = size(lids) "
+                    f"WITH a_list, lids UNWIND [k in range(0, size(lids)-1) | [a_list, k, lids[k]]] as node_data "
                     f"WITH node_data[0] AS origin, node_data[1] AS list_item_idx, node_data[2] AS list_item "
                     f"CREATE (origin)-[:TEMP_LINK{{of_list:origin.name,item_id:list_item_idx}}]->(:DLListItem:AbstractStructItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(list_item)")
         

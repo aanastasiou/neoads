@@ -248,7 +248,7 @@ class AbstractSet(CompositeAbstract):
 
         self._pre_action_check("__or__")
         other._pre_action_check("__or__")
-        new_set = self.__class_().save()
+        new_set = self.__class__().save()
         if len(self)==0:
             new_set.from_abstractset(other, auto_reset=True)
         else:

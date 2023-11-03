@@ -1,6 +1,12 @@
 Version 0.0.8
 * Added SimpleInteger and SimpleFloat
 * Updated use of `id` to `element_id` as per `neomodel` 's current status
+* Turned static labels used in queries this far with dynamic ones, 
+  thereby allowing inheritance even for abstract data structures.
+* Corrected AbstractDLList's `from_query` to work with up to date Neo4j
+  versions.
+* Corrected a typo that was causing the `__or__` operator of `AbstractSet` to
+  to fail 
 
 Version 0.0.7
 

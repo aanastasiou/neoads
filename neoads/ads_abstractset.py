@@ -118,28 +118,30 @@ class AbstractSet(CompositeAbstract):
         self.refresh()
         return self
 
-    # TODO: MID, However, it might be possible to establish a hash-like user procedure in CYPHER at server side which could be
-    #       invoked by neoads to implement such queries server side too. (With APOC's sha this can definitely be done now)
-    #
-    # def from_query(self, query, auto_reset=False):
-    #     """
-    #     Populates a Set from a query
-    #
-    #     WARNING!!!: This function is not working because there is no way to establish the hash on Neo4Js side
-    #     :param query:
-    #     :param auto_reset:
-    #     :return:
-    #     """
-    #     self._pre_action_check("from_query")
-    #
-    #     if auto_reset:
-    #         self.clear()
-    #     elif len(self)>0:
-    #         raise exception.ContainerNotEmpty("Attempted to reset non empty AbstractSet {}".format(self.name))
-    #
-    #     self.cypher("MATCH (a_set:AbstractSet{{name:'{nme}'}}) with a_set {match_query} with a_set, SetItem, count(SetItem) as SetItem_CNT CREATE (a_set)-[:SET_ELEMENT]->(an_item:SetItem:AbstractStructItem{{hash_value:hash(SetItem)}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(SetItem);".format(**{"nme" : self.name,"match_query":query}))
-    #     self.refresh()
-    #     return self
+    def from_query(self, query, auto_reset=False):
+        """
+        Populates a Set from a query
+    
+        WARNING!!!: This function is not working because there is no way to establish the hash on Neo4Js side
+        :param query: Query must bind to SetElement
+        :param auto_reset:
+        :return:
+        """
+        self._pre_action_check("from_query")
+    
+        if auto_reset:
+            self.clear()
+        elif len(self)>0:
+            raise exception.ContainerNotEmpty("Attempted to reset non empty AbstractSet {}".format(self.name))
+        
+        this_set_name = self.name
+        this_set_labels = ":".join(self.labels())
+    
+        self.cypher(f"MATCH (a_set:{this_set_labels}{{name:'{this_set_name}'}}) with a_set {query} with a_set, SetElement, properties(SetElement) as p,  "
+                    f"keys(properties(SetElement)) as k order by k with a_set, SetElement, p,k, apoc.util.sha256([reduce(v=\"\", m in [u in k| u + p[u]] | v+m)]) as SetElementHash "
+                    f"CREATE (a_set)-[:SET_ELEMENT]->(an_item:SetItem:AbstractStructItem{{hash_value:SetElementHash}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(SetElement)")
+        self.refresh()
+        return self
 
     def from_hash_nodeid_list(self, a_hash_nodeid_list, auto_reset=False):
         """

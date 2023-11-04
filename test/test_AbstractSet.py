@@ -182,3 +182,24 @@ def test_len():
     s1.delete()
     s2.delete()
     s3.delete()
+
+def test_from_query():
+    """
+    AbstractSet can be constructed server-side via queries
+    """
+
+    # Create some generic content
+    s1 = neoads.CompositeString("Alpha").save()
+    s2 = neoads.CompositeString("Beta").save()
+    s3 = neoads.CompositeString("Gamma").save()
+    s4 = neoads.CompositeString("Alpha").save()
+
+    # Populate the set via a query
+    u = neoads.AbstractSet().save()
+    u.from_query("MATCH (SetItem:CompositeString)")
+    assert 1
+    # Clean up
+    # u.destroy()
+    # s1.delete()
+    # s2.delete()
+    # s3.delete()

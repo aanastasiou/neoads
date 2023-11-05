@@ -73,13 +73,6 @@ class SetItem(AbstractStructItem):
 class AbstractSet(CompositeAbstract):
     """
     A Set of UNIQUE elements.
-
-    .. warning::
-
-        Attractive as its functionality might be, the Set lacks functions to populate it with CYPHER queries
-        (e.g. from_query). The key problem with that is that the item's hash_value cannot be set consistently (no
-        similar function in APOC) at the server side.
-
     """
     elements = neomodel.RelationshipTo("SetItem", "SET_ELEMENT")
 
@@ -120,12 +113,42 @@ class AbstractSet(CompositeAbstract):
 
     def from_query(self, query, auto_reset=False):
         """
-        Populates a Set from a query
-    
-        WARNING!!!: This function is not working because there is no way to establish the hash on Neo4Js side
-        :param query: Query must bind to SetElement
-        :param auto_reset:
-        :return:
+        Populates a Set from a query at server side.
+
+        .. warning:: 
+            
+            Use of this function requires the Neo4j server to be using `APOC <https://neo4j.com/docs/apoc/current/overview/apoc/>`_.
+            If APOC is not available, see AbstractSet's ``.add()``
+
+
+        .. note::
+
+            The set's elements are the entities that are "selected" by ``query``. 
+            The ``query`` **MUST** bind a ``SetElement`` entity which itself would have to be a ``PersistentElement`` and should be an *incomplete* CYPHER READ query.
+
+        **EXAMPLE:**
+
+         ::
+
+            "MATCH (SetElement: CompositeString)"
+                      with a possible WHERE clause too
+
+        Notice here:
+
+        * This query would create a Set of all the unique ``CompositeString`` entities in 
+          the database.
+
+        * This query is *incompete*. It only contains the MATCH statement without the usually necessary `return` clause.
+
+
+
+        :param query: A CYPHER READ query **WITHOUT** the `return` clause. The elements of the set should be bind as `SetElement`.
+        :type query: str
+        :param auto_reset: Whether to re-use the set node by first clearing the contents
+                           of the Set prior to populating it.
+        :type auto_reset: bool
+        :raises ContainerNotEmpty: When ``from_query`` is called on an already populated Set. Use ``auto_reset=True`` to discard the current Set elements and reset it to the result of ``from_query``.
+        :return: AbstractSet (self) 
         """
         self._pre_action_check("from_query")
     
@@ -136,10 +159,17 @@ class AbstractSet(CompositeAbstract):
         
         this_set_name = self.name
         this_set_labels = ":".join(self.labels())
+
+        # TODO: HIGH, Amend CompositeAbstract and then edit this query to take into account the composite hash
+        # TODO: HIGH, `from_query` can now go into CompositeAbstract
     
-        self.cypher(f"MATCH (a_set:{this_set_labels}{{name:'{this_set_name}'}}) with a_set {query} with a_set, SetElement, properties(SetElement) as p,  "
-                    f"keys(properties(SetElement)) as k order by k with a_set, SetElement, p,k, apoc.util.sha256([reduce(v=\"\", m in [u in k| u + p[u]] | v+m)]) as SetElementHash "
-                    f"CREATE (a_set)-[:SET_ELEMENT]->(an_item:SetItem:AbstractStructItem{{hash_value:SetElementHash}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(SetElement)")
+        self.cypher(f"MATCH (a_set:{this_set_labels}{{name:'{this_set_name}'}}) WITH a_set {query} with a_set, SetElement, properties(SetElement) as p,  "
+                    f"keys(properties(SetElement)) as k order by k with a_set, COLLECT([SetElement, apoc.util.sha256([reduce(v=\"\", m in [u in k where u<>\"name\"|u+p[u]]|v+m)])]) as SetElementAndHash "
+                    f"UNWIND SetElementAndHash as SetElementAndHashItem with a_set, SetElementAndHashItem order by SetElementAndHashItem[1] "
+                    f"WITH a_set, collect(SetElementAndHashItem) as OrderedSetElementAndHash with a_set, [i in range(0, size(OrderedSetElementAndHash)-1) WHERE i=0 or OrderedSetElementAndHash[i][1] <> OrderedSetElementAndHash[i-1][1]|OrderedSetElementAndHash[i]] as FinalSetElementAndHash "
+                    f"UNWIND FinalSetElementAndHash as FSEA with a_set, FSEA[0] as TheSetElement, FSEA[1] as TheSetElementHash "
+                    f"CREATE (a_set)-[:SET_ELEMENT]->(an_item:SetItem:AbstractStructItem{{hash_value:TheSetElementHash}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(TheSetElement)")
+
         self.refresh()
         return self
 

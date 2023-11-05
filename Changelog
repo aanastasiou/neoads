@@ -1,4 +1,4 @@
-Version 0.0.8
+Version 0.0.8 2023-11-05
 * Added SimpleInteger and SimpleFloat
 * Updated use of `id` to `element_id` as per `neomodel` 's current status
 * Turned static labels used in queries this far with dynamic ones, 
@@ -6,7 +6,10 @@ Version 0.0.8
 * Corrected AbstractDLList's `from_query` to work with up to date Neo4j
   versions.
 * Corrected a typo that was causing the `__or__` operator of `AbstractSet` to
-  to fail 
+  to fail
+* Added `from_query` to AbstractSet as well and ammended tests
+* Slight modification of ``AbstractDLList`` documentation, added `from_query`
+  docs to AbstractSet
 
 Version 0.0.7
 

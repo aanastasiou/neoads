@@ -192,14 +192,17 @@ def test_from_query():
     s1 = neoads.CompositeString("Alpha").save()
     s2 = neoads.CompositeString("Beta").save()
     s3 = neoads.CompositeString("Gamma").save()
+    # This node is a duplicate. One of the two "Alpha" should not make it
+    # into the AbstractSet
     s4 = neoads.CompositeString("Alpha").save()
 
     # Populate the set via a query
     u = neoads.AbstractSet().save()
-    u.from_query("MATCH (SetItem:CompositeString)")
-    assert 1
+    u.from_query("MATCH (SetElement:CompositeString)")
+    assert len(u) == 3
     # Clean up
-    # u.destroy()
-    # s1.delete()
-    # s2.delete()
-    # s3.delete()
+    u.destroy()
+    s1.delete()
+    s2.delete()
+    s3.delete()
+    s4.delete()

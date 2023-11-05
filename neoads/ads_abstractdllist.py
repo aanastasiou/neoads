@@ -376,14 +376,14 @@ class AbstractDLList(CompositeAbstract):
         self.save()
         return self
 
-    def from_query(self, query, auto_reset=False, no_duplicates=False):
+    def from_query(self, query, auto_reset=False):
         """
-        Creates a doubly linked list at server side.
+        Populates a doubly linked list at server side.
 
         .. note::
 
-            The list's items point to the return result of ``query``. The query **MUST** return ``PersistentElement`` and be
-            a CYPHER READ query.
+            The list's items are the entities that are "selected" by ``query``. 
+            The ``query`` **MUST** bind a ``ListItem`` entity which itself would have to be a ``PersistentElement`` and should be an *incomplete* CYPHER READ query.
 
         .. warning::
 
@@ -399,11 +399,15 @@ class AbstractDLList(CompositeAbstract):
             "MATCH (ListItem:Institute)-[:CITY]-(:City)-[:IN_COUNTRY]-(:Country{countryName:'Australia'})"
                       with a possible WHERE clause too
 
+        Notice here, this query is *incompete*. It only contains the MATCH statement without the usually necessary `return` clause.
 
-        :param no_duplicates: Whether or not to retain potential ListItem duplicates that might be returned by `query`
-        :type no_duplicates: bool
-        :param query: A CYPHER READ query **WITHOUT** the return clause. The entity that is to be pointed to by list
-                      items should be named ListItem.
+        :param query: A CYPHER READ query **WITHOUT** the `return` clause. The entity that is to be pointed to by list
+                      items should be bind as `ListItem`.
+        :type query: str
+        :param auto_reset: Whether to re-use the list node by first clearing
+                           the contents of the list prior to populating it.
+        :type auto_reset: bool
+        :raises ContainerNotEmpty: When ``from_query`` is called on an already populated List. Use ``auto_reset=True`` to discard the current list items and reset it to the result of ``from_query``.
         :return: AbstractDLList (self)
         """
         self._pre_action_check("from_query")
@@ -418,12 +422,10 @@ class AbstractDLList(CompositeAbstract):
         this_list_labels = ":".join(self.labels())
         self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{self.name}'}}) SET a_list.length=0")
         # Create list items and index them sequentially
-        #.format(**{"nme" : self.name,"match_query":query,"dup_removal":dprem_query_fragment[no_duplicates]})
         nme = self.name
         match_query = query
-        dup_removal = dprem_query_fragment[no_duplicates]
-
         # TODO: HIGH, if match_query contains WITH it must be ensured that aList is propagated in that query, otherwise this would fail (see also from_id_array)
+        # dup_removal = dprem_query_fragment[no_duplicates]
         # self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{nme}'}}) WITH a_list {match_query} WITH a_list, ListItem{dup_removal} CREATE (a_list)-[:TEMP_LINK{{of_list:a_list.name,item_id:a_list.length}}]->(an_item:DLListItem:AbstractStructItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(ListItem) SET a_list.length=a_list.length+1")
         # self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{nme}'}}) WITH a_list {match_query} WITH a_list, collect(ListItem) as lids " 
         #             f"UNWIND [k in range(0, size(lids)-1) | [a_list, k, lids[k]]] as node_data "

@@ -488,3 +488,49 @@ class AbstractDLList(CompositeAbstract):
         # Notice here that I am simply re-using from_query
         self.from_query(f"MATCH (array:{labels}{{name:'{name}'}}) WITH a_list, array MATCH (ListItem) WHERE id(ListItem) in array.value")
         return self
+
+    def iteritems(self):
+        return AbstractDLListIterator(self)
+
+    def get_head(self):
+        """
+        Returns the list's wrapper object at the head of the list
+        """
+        try:
+            head_object = self.head.get()
+        except neomodel.DoesNotExist:
+            head_object = None
+        return head_object
+
+    def get_tail(self):
+
+        pass
+
+
+
+class AbstractDLListIterator:
+    def __init__(self, dllist_to_iterate):
+        if not isinstance(dllist_to_iterate, AbstractDLList):
+            raise TypeError(f"Expected AbstractDLList, received {type(dllist_to_iterate)}")
+        
+        self._dllist_to_iterate = dllist_to_iterate
+        self._current_node = None
+
+    def __iter__(self):
+        # Get the head, set the current_node pointing to the first item in the list
+        try:
+            self._current_node = self._dllist_to_iterate.head.get() 
+        except neomodel.DoesNotExist:
+            self._current_node = None
+        return self
+
+    def __next__(self):
+        if self._current_node is not None:
+            value_to_return = self._current_node.value.get()
+            try:
+                self._current_node = self._current_node.nxt.get()
+            except neomodel.DoesNotExist:
+                self._current_node = None
+            return value_to_return
+        else:
+            raise StopIteration()

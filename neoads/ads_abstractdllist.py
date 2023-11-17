@@ -503,8 +503,12 @@ class AbstractDLList(CompositeAbstract):
         return head_object
 
     def get_tail(self):
+        if self.get_head() is None:
+            return None
 
-        pass
+        this_list_labels = ":".join(self.labels())
+        this_list_tail_item = DLListItem.inflate(self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{self.name}'}})-[:DLL_NXT*]-(data_item:DLListItem) WHERE NOT (data_item)-[:DLL_NXT]->() RETURN data_item")[0][0][0])
+        return this_list_tail_item
 
 
 

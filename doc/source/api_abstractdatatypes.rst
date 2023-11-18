@@ -19,4 +19,4 @@ Abstract Data Structures
 ------------------
 
 .. automodule:: neoads.ads_abstractdllist
-   :members: DLListItem, AbstractDLList
+   :members: DLListItem, AbstractDLList, AbstractDLListForwardIterator, AbstractDLListReverseIterator

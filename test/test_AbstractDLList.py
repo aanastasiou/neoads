@@ -126,3 +126,38 @@ def test_from_id_array():
     u.destroy()
     v.delete()
     [an_item.delete() for an_item in elements]
+
+
+def test_iteratorforward():
+    """
+    Forward iterator should return items from head to tail
+    """
+    # Create some generic content that is to be added to the DLList by query
+    elements = [neoads.SimpleNumber(random.random()).save() for i in range(0, 10)]
+    # # Create and populate the DLList
+    u = neoads.AbstractDLList().save()
+    [u.append(an_element) for an_element in elements]
+    # Run the test
+    assert all([v == elements[idx] for idx, v in enumerate(u.iterforward())])
+    # Clean up
+    u.destroy()
+    [an_item.delete() for an_item in elements]
+
+
+def test_iteratorreverse():
+    """
+    Reverse iterator should return items from tail to head
+    """
+    # Create some generic content that is to be added to the DLList by query
+    elements = [neoads.SimpleNumber(random.random()).save() for i in range(0, 10)]
+    # # Create and populate the DLList
+    u = neoads.AbstractDLList().save()
+    [u.append(an_element) for an_element in elements]
+    # Reverse the order of elements
+    elements.reverse()
+    # Run the test
+    assert all([v == elements[idx] for idx, v in enumerate(u.iterreverse())])
+    # Clean up
+    u.destroy()
+    [an_item.delete() for an_item in elements]
+

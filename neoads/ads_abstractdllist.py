@@ -489,8 +489,11 @@ class AbstractDLList(CompositeAbstract):
         self.from_query(f"MATCH (array:{labels}{{name:'{name}'}}) WITH a_list, array MATCH (ListItem) WHERE id(ListItem) in array.value")
         return self
 
-    def iteritems(self):
-        return AbstractDLListIterator(self)
+    def iterforward(self):
+        return AbstractDLListForwardIterator(self)
+
+    def iterreverse(self):
+        return AbstractDLListReverseIterator(self)
 
     def get_head(self):
         """
@@ -503,13 +506,15 @@ class AbstractDLList(CompositeAbstract):
         return head_object
 
     def get_tail(self):
+        """
+        Returns the list's wrapper object at the tail of the list
+        """
         if self.get_head() is None:
             return None
 
         this_list_labels = ":".join(self.labels())
         this_list_tail_item = DLListItem.inflate(self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{self.name}'}})-[:DLL_NXT*]-(data_item:DLListItem) WHERE NOT (data_item)-[:DLL_NXT]->() RETURN data_item")[0][0][0])
         return this_list_tail_item
-
 
 
 class AbstractDLListIterator:
@@ -520,12 +525,13 @@ class AbstractDLListIterator:
         self._dllist_to_iterate = dllist_to_iterate
         self._current_node = None
 
+
+class AbstractDLListForwardIterator(AbstractDLListIterator):
+    """
+    A forward iterator that returns a DL list's elements in head to tail order.
+    """
     def __iter__(self):
-        # Get the head, set the current_node pointing to the first item in the list
-        try:
-            self._current_node = self._dllist_to_iterate.head.get() 
-        except neomodel.DoesNotExist:
-            self._current_node = None
+        self._current_node = self._dllist_to_iterate.get_head()
         return self
 
     def __next__(self):
@@ -533,6 +539,26 @@ class AbstractDLListIterator:
             value_to_return = self._current_node.value.get()
             try:
                 self._current_node = self._current_node.nxt.get()
+            except neomodel.DoesNotExist:
+                self._current_node = None
+            return value_to_return
+        else:
+            raise StopIteration()
+
+
+class AbstractDLListReverseIterator(AbstractDLListIterator):
+    """
+    A reverse iterator that returns a DL list's elements in tail to head order.
+    """
+    def __iter__(self):
+        self._current_node = self._dllist_to_iterate.get_tail()
+        return self
+
+    def __next__(self):
+        if self._current_node is not None:
+            value_to_return = self._current_node.value.get()
+            try:
+                self._current_node = self._current_node.prv.get()
             except neomodel.DoesNotExist:
                 self._current_node = None
             return value_to_return

@@ -1,3 +1,7 @@
+Version 0.0.9
+* Added forward and reverse iterators to AbstractDLList
+
+
 Version 0.0.8 2023-11-05
 * Added SimpleInteger and SimpleFloat
 * Updated use of `id` to `element_id` as per `neomodel` 's current status

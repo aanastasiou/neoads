@@ -64,16 +64,6 @@ from . import exception
 from .ads_core import AbstractStructItem, CompositeAbstract
 
 
-class DLListItem(AbstractStructItem):
-    """
-    A struct item of a doubly linked list.
-    """
-    # Pointer to the next item in the list
-    prv = neomodel.RelationshipTo("DLListItem", "DLL_PRV")
-    # Pointer to the previous item in the list
-    nxt = neomodel.RelationshipTo("DLListItem", "DLL_NXT")
-
-
 class AbstractDLList(CompositeAbstract):
     """
     A doubly linked list with indexing.
@@ -83,41 +73,6 @@ class AbstractDLList(CompositeAbstract):
         Although the list is Doubly Linked, only the list's ``head`` is preserved with the List entry.
 
     """
-    head = neomodel.RelationshipTo("DLListItem", "DLL_NXT")
-    length = neomodel.IntegerProperty(default=0)
-
-    def __len__(self):
-        """
-        Returns the length of the list.
-
-        :return: int
-        """
-        self._pre_action_check('__len__')
-        return self.length
-
-    def destroy(self):
-        """
-        Clears the list and completely removes it from the DBMS.
-        """
-        self.clear()
-        self.delete()
-
-    def clear(self):
-        """
-        Clears the list.
-
-        .. note::
-
-            To delete the list itself, use destroy()
-
-        """
-        self._pre_action_check('clear')
-        nme = self.name
-        this_list_labels = ":".join(self.labels())
-        # TODO: Notice here that queries use static labels on the auxiliary objects (e.g. DLListItem). This means that it they were to be extended, the queries would pick the generic class and not the specific. The top level object though use all of its labels and therefore matches the specific list. This does not cause problems as long as the elements that compose the structure of the list do not need to be overriden
-        self.cypher(f"MATCH (a_list:{this_list_labels}{{name:'{nme}'}})-[:DLL_NXT*]-(data_item:DLListItem) DETACH DELETE data_item")
-        self.length = 0
-        self.save()
 
     def __getitem__(self, item_index):
         """

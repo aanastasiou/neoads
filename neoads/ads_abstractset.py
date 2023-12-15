@@ -44,37 +44,14 @@ from . import exception
 from .ads_core import AbstractStructItem, CompositeAbstract
 
 
-class SetItem(AbstractStructItem):
-    """
-    A struct item that is an element of a set.
-
-    A set item maintains its item's ``hash_value`` for fast lookups.
-    """
-    # The hash value is not essential for the data structure but it is essential for insertions and deletions
-    # hash_value = neomodel.IntegerProperty(index=True, required=True)
-    hash_value = neomodel.StringProperty(index=True, required=True)
-
-    def __init__(self, hash_value, **kwargs):
-        """
-        Initialises a SetItem object by ensuring that the hash_value will be turned into a hex string.
-
-        NOTE:
-            The hexadecimal should be lowercase formated.
-
-        :param hash_value:
-        :param kwargs:
-        """
-        if isinstance(hash_value, int):
-            # Convert it to a string
-            hash_value = f"{hash_value:x}"
-        super().__init__(hash_value=hash_value, **kwargs)
-
-
 class AbstractSet(CompositeAbstract):
     """
     A Set of UNIQUE elements.
     """
-    elements = neomodel.RelationshipTo("SetItem", "SET_ELEMENT")
+
+    @property
+    def elements(self):
+        return None
 
     def from_abstractset(self, an_abstractSet, auto_reset=False):
         """
@@ -101,9 +78,10 @@ class AbstractSet(CompositeAbstract):
         other_set_labels = ":".join(an_abstractSet.labels())
         other_set_name = an_abstractSet.name
 
+        #TODO: HIGH, this needs to be handled with from_query
         self.cypher(f"MATCH (this_set:{this_set_labels}{{name:'{this_set_name}'}}), "
-                    f"(other_set:{other_set_labels}{{name:'{other_set_name}'}})-[:SET_ELEMENT]->"
-                    "(an_element:AbstractStructItem:SetItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->"
+                    f"(other_set:{other_set_labels}{{name:'{other_set_name}'}})-[:DLL_NXT*]->"
+                    "(an_element:AbstractStructItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->"
                     "(an_element_value) CREATE (this_set)-[:SET_ELEMENT]->"
                     "(:AbstractStructItem:SetItem{hash_value:an_element.hash_value})-[:ABSTRACT_STRUCT_ITEM_VALUE]->"
                     "(an_element_value)")
@@ -167,62 +145,31 @@ class AbstractSet(CompositeAbstract):
                     f"keys(properties(SetElement)) as k order by k with a_set, COLLECT([SetElement, apoc.util.sha256([reduce(v=\"\", m in [u in k where u<>\"name\"|u+p[u]]|v+m)])]) as SetElementAndHash "
                     f"UNWIND SetElementAndHash as SetElementAndHashItem with a_set, SetElementAndHashItem order by SetElementAndHashItem[1] "
                     f"WITH a_set, collect(SetElementAndHashItem) as OrderedSetElementAndHash with a_set, [i in range(0, size(OrderedSetElementAndHash)-1) WHERE i=0 or OrderedSetElementAndHash[i][1] <> OrderedSetElementAndHash[i-1][1]|OrderedSetElementAndHash[i]] as FinalSetElementAndHash "
-                    f"UNWIND FinalSetElementAndHash as FSEA with a_set, FSEA[0] as TheSetElement, FSEA[1] as TheSetElementHash "
-                    f"CREATE (a_set)-[:SET_ELEMENT]->(an_item:SetItem:AbstractStructItem{{hash_value:TheSetElementHash}})-[:ABSTRACT_STRUCT_ITEM_VALUE]->(TheSetElement)")
+                    # From this point onwards, the queries are exactly the same to the DLList ones.
+                    f"UNWIND [k in range(0, size(FinalSetElementAndHash)-1) | [a_set, k, FinalSetElementAndHash[k][0]]] as node_data "
+                    f"WITH node_data[0] AS origin, node_data[1] AS set_item_idx, node_data[2] AS set_item "
+                    f"CREATE (origin)-[:TEMP_LINK{{of_set:origin.name,item_id:set_item_idx}}]->(:AbstractStructItem)-[:ABSTRACT_STRUCT_ITEM_VALUE]->(set_item)")
 
+        # Create the double linked connections
+        # Create forwards connections
+        self.cypher(f"MATCH (a_set:{this_set_labels}{{name:'{this_set_name}'}})-[r1:TEMP_LINK{{of_set:a_set.name}}]->(this_item:AbstractStructItem) "
+                    f"WITH a_set,r1,this_item MATCH (a_set)-[r2:TEMP_LINK{{of_set:a_set.name}}]->(next_item:AbstractStructItem) "
+                    f"WHERE r2.item_id=r1.item_id+1 CREATE (this_item)-[:DLL_NXT]->(next_item)")
+
+        # Create backwards connections
+        self.cypher(f"MATCH (a_set:{this_set_labels}{{name:'{this_set_name}'}})-[r1:TEMP_LINK{{of_set:a_set.name}}]->(this_item:AbstractStructItem) WHERE r1.item_id>0 "
+                    f"WITH a_set,r1,this_item MATCH (a_set)-[r2:TEMP_LINK{{of_set:a_set.name}}]->(previous_item:AbstractStructItem) "
+                    f"WHERE r2.item_id=r1.item_id-1 CREATE (this_item)-[:DLL_PRV]->(previous_item)")
+        
+        # Connect the items to the head of the list
+        self.cypher(f"MATCH (a_set:{this_set_labels}{{name:'{this_set_name}'}})-[r:TEMP_LINK{{of_set:a_set.name,item_id:0}}]->(a_set_item:AbstractStructItem) "
+                    f"WITH a_set,a_set_item CREATE (a_set)-[:DLL_NXT]->(a_set_item)")
+
+        # Delete the temporary links
+        self.cypher(f"MATCH (a_set:{this_set_labels}{{name:'{this_set_name}'}})-[r:TEMP_LINK{{of_set:a_set.name}}]->(:AbstractStructItem) DELETE r")
+        # Now, length has changed, so this entity needs to be refreshed
         self.refresh()
         return self
-
-    def from_hash_nodeid_list(self, a_hash_nodeid_list, auto_reset=False):
-        """
-        Initialises an abstract set from a list of hash, Node ID tuples
-
-        .. warning::
-
-            Not to be called directly.
-
-
-        :param a_hash_nodeid_list: A list of tuples
-        :type a_hash_nodeid_list: list
-        :param auto_reset: Whether to clear the contents of the set automatically
-        :type auto_reset: boolean
-        :return: AbstractSet (self)
-        """
-        # Check that this object is saved
-        self._pre_action_check("from_hash_nodeid_list")
-
-        # Check that a_hash_nodeid_list is a python list
-        if not isinstance(a_hash_nodeid_list, list):
-            raise TypeError(f"from_python expects 'list' received {type(a_hash_nodeid_list)}")
-
-        # Empty the current values
-        if auto_reset:
-            self.clear()
-        elif len(self)>0:
-            raise exception.ContainerNotEmpty(f"Attempted to reset non empty AbstractSet {self.name}")
-
-        #self.cypher("WITH {the_hash_nodeid_list} AS hash_nodeid_list UNWIND hash_nodeid_list AS hash_nodeid_item MERGE (a_set:AbstractSet{{name:'{this_set_name}'}})-[:SET_ELEMENT]->(a_set_element:AbstractStructItem:setElement{{hash_value:hash_nodeid_list[0]}}) ON CREATE MATCH (a_value_node) where id(a_value_node)=hash_node_list[1] CREATE (a_set_element)-[:ABSTRACT_STRUCT_VALUE]->(a_value_node) ON MATCH MATCH (a_set_element:setElement)-[r:ABSTRACT_STRUCT_VALUE]->(some_node) detach delete r MATCH (a_value_node) where id(a_value_node)=hash_node_list[1] CREATE (a_set_element)-[:ABSTRACT_STRUCT_VALUE]->(a_value_node)".format(**{"the_hash_nodeid_list":str(a_hash_nodeid_list).replace("(","[").replace(")","]"),"this_set_name":self.name}))
-        the_hash_nodeid_list = str(a_hash_nodeid_list).replace("(", "[").replace(")", "]")
-        this_set_name = self.name
-        this_set_labels = ":".join(self.labels())
-
-        self.cypher(f"MATCH (a_set:{this_set_labels}{{name:'{this_set_name}'}}) "
-                    f"WITH a_set,{the_hash_nodeid_list} AS hash_nodeid_list "
-                    "UNWIND hash_nodeid_list AS hash_nodeid_item "
-                    "MATCH (a_value_node) WHERE id(a_value_node)=hash_nodeid_item[1] "
-                    "CREATE (a_set)-[:SET_ELEMENT]->"
-                    "(a_set_element:AbstractStructItem:SetItem{hash_value:hash_nodeid_item[0]})-[:ABSTRACT_STRUCT_ITEM_VALUE]->"
-                    "(a_value_node)")
-        return self
-
-    def __len__(self):
-        """
-        Returns the size of the set.
-
-        :return: int
-        """
-        self._pre_action_check('__len__')
-        return len(self.elements)
 
     def __eq__(self, other):
         """

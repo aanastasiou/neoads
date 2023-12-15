@@ -87,7 +87,6 @@ class CompositeAbstract(VariableComposite):
         self.save()
 
 
-
 class AbstractStructItem(neomodel.StructuredNode):
     """
     Base class for helper entities that are used by the abstract data types.

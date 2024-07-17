@@ -60,7 +60,15 @@ class ValueReference(neomodel.StructuredNode):
     :param name: String, default value is a uuid4 tag
     """
     name = neomodel.StringProperty(unique_index=True, default=uuid.uuid4)
-    value = RelationshipTo(PersistentValue, "HAS_VALUE", cardinality=neomodel.One)
+    ref = RelationshipTo(PersistentValue, "HAS_VALUE", cardinality=neomodel.One)
+
+    def __init__(self, ref_value, name=None):
+        if name is not None:
+            super().__init__(name=name)
+        else:
+            super().__init__()
+        self.save()
+        self.connect(ref_value)
 
 
 class DomainValue(PersistentValue):

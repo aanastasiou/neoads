@@ -22,7 +22,7 @@ class SimpleValue(Value):
     Base type for simple data values.
     """
 
-    def __init__(self, value, name = None):
+    def __init__(self, value):
         """
         Default implementation for the assignment operator
         """
@@ -30,6 +30,7 @@ class SimpleValue(Value):
             super().__init__(value=value)
         else:
             super().__init__(value=value)
+        self.save()
 
     def _neoads_hash(self):
         """
@@ -39,6 +40,9 @@ class SimpleValue(Value):
         string in a straightforward way.
         """
         return int(hashlib.sha256(str(self.value).encode("utf-8")).hexdigest(), base=16)
+    
+    def __str__(self):
+        return str(self.value)
 
 
 class IntegerValue(SimpleValue):

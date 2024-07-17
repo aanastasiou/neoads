@@ -16,9 +16,10 @@ import neomodel
 from . import exception
 import datetime
 import hashlib
+import uuid
 
 
-class PersistentElement(neomodel.StructuredNode):
+class PersistentValue(neomodel.StructuredNode):
     """
     Base type for all entities that are persistent via ``neoads``.
     """
@@ -42,30 +43,29 @@ class PersistentElement(neomodel.StructuredNode):
                 raise exception.ObjectUnsavedError(f"Operation {action} attempted on unsaved object")
 
 
-class ElementVariable(PersistentElement):
+class Value(PersistentValue):
     """
-    Base type for all persistent elements within ``neoads``.
+    Base type for all persistent values within ``neoads``.
 
-    A persistent data element has a logical name that is used to refer to it and this name must be unique across a
-    database instance.
-
-    This logical name is equivalent to a *"variable name"* .
-
-    :param value: The actual value of the element
+    :param value: The actual value
     :type value: Any
-    :param name: The name of the element. This is also implemented as a "Unique" constrain on the Neo4J 
-                 backend (via ``neomodel``)
-    :type name: neomodel.UniqueIdProperty
-
     """
     value = None
 
-    name = neomodel.UniqueIdProperty()
 
-
-class ElementDomain(PersistentElement):
+class ValueReference(neomodel.StructuredNode):
     """
-    Base type for all persistent elements that belong to the "hosted" domain.
+    Points to a value.
+
+    :param name: String, default value is a uuid4 tag
+    """
+    name = neomodel.StringProperty(unique_index=True, default=uuid.uuid4)
+    value = RelationshipTo(PersistentValue, "HAS_VALUE", cardinality=neomodel.One)
+
+
+class DomainValue(PersistentValue):
+    """
+    Base type for all persistent values that belong to the "hosted" domain.
     """
     
     def _neoads_hash(self):

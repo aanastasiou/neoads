@@ -11,15 +11,15 @@ a single double precision number).
 :date: Jan 2018
 """
 
-from .core import ElementVariable
+from .core import Value
 import neomodel
 import hashlib
 import datetime
 
 
-class VariableSimple(ElementVariable):
+class SimpleValue(Value):
     """
-    Base type for variables that are of Simple data types.
+    Base type for simple data values.
     """
 
     def __init__(self, value, name = None):
@@ -27,40 +27,21 @@ class VariableSimple(ElementVariable):
         Default implementation for the assignment operator
         """
         if name is not None:
-            super().__init__(value=value, name=name)
+            super().__init__(value=value)
         else:
             super().__init__(value=value)
 
     def _neoads_hash(self):
         """
-        Compute the hash value of VariableSimple as the sha256 of its string representation.
+        Compute the hash value of SimpleValue as the sha256 of its string representation.
 
-        In general, simple variable values are expected to be able to be converted to 
+        In general, simple values are expected to be able to be converted to 
         string in a straightforward way.
         """
         return int(hashlib.sha256(str(self.value).encode("utf-8")).hexdigest(), base=16)
 
 
-class SimpleNumber(VariableSimple):
-    """
-    A typical single number.
-
-    **Note:** To avoid over complicating things, a neoads "number" is a 
-          double precision real number.
-
-    :param value: A double precision real number
-    :type value: neomodel.FloatProperty
-
-    """
-    value = neomodel.FloatProperty(index=True)
-
-    def __init__(self, value, name=None):
-        if not isinstance(value, (float, int)):
-            raise TypeError(f"SimpleNumber initialisation expects int or float received {type(value)}")
-        super().__init__(value=float(value), name=name)
-
-
-class SimpleInteger(VariableSimple):
+class IntegerValue(SimpleValue):
     """
     A typical single integer number.
 
@@ -70,41 +51,41 @@ class SimpleInteger(VariableSimple):
     """
     value = neomodel.IntegerProperty(index=True)
 
-    def __init__(self, value, name=None):
+    def __init__(self, value):
         if not isinstance(value, int):
-            raise TypeError(f"SimpleInteger initialisation expects int received {type(value)}")
-        super().__init__(value=int(value), name=name)
+            raise TypeError(f"IntegerValue initialisation expects int received {type(value)}")
+        super().__init__(value=int(value))
 
 
-class SimpleFloat(VariableSimple):
+class FloatValue(SimpleValue):
     """
     A typical single Real number.
 
-    :param value: An integer
+    :param value: A float 
     :type value: neomodel.FloatProperty
 
     """
     value = neomodel.FloatProperty(index=True)
 
-    def __init__(self, value, name=None):
+    def __init__(self, value):
         if not isinstance(value, float):
-            raise TypeError(f"SimpleFloat initialisation expects float received {type(value)}")
-        super().__init__(value=float(value), name=name)
+            raise TypeError(f"FloatValue initialisation expects float received {type(value)}")
+        super().__init__(value=float(value))
 
         
 
-class SimpleDate(VariableSimple):
+class DateValue(SimpleValue):
     """
-    A typical single date.
+    A typical date value.
 
-    :param value: The date that this element represents.
+    :param value: A date.
     :type value: neomodel.DateProperty
     """
 
     value = neomodel.DateProperty(index=True)
 
-    def __init__(self, value, name=None, **kwargs):
+    def __init__(self, value, **kwargs):
         if not isinstance(value, datetime.date):
-            raise TypeError(f"SimpleDate initialisation expects datetime.date received {type(value)}")
-        super().__init__(value=value, name=name, **kwargs)
+            raise TypeError(f"DateValue initialisation expects datetime.date received {type(value)}")
+        super().__init__(value=value, **kwargs)
 

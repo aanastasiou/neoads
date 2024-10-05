@@ -52,6 +52,34 @@ class Value(PersistentValue):
     """
     value = None
 
+    @property
+    def value(self):
+        return self.value
+
+
+class ValuePair(PersistentValue):
+    """
+    """
+    p_left = neomodel.RelationshipTo(PersistentValue, "CAR", cardinality=neomodel.One)
+    p_right = neomodel.RelationshipTo(PersistentValue, "CDR", cardinality=neomodel.One)
+
+    @property
+    def left(self):
+        return self.p_left[0]
+
+    @property
+    def right(self):
+        return self.p_right[0]
+
+    def cons(self, left=None, right=None):
+        # If left or right are ValueReference then first de-reference and then connect
+        self.save()
+        if left is not None:
+            self.p_left.connect(left)
+        if right is not None:
+            self.p_right.connect(right)
+        return self
+
 
 class ValueReference(neomodel.StructuredNode):
     """
@@ -60,15 +88,27 @@ class ValueReference(neomodel.StructuredNode):
     :param name: String, default value is a uuid4 tag
     """
     name = neomodel.StringProperty(unique_index=True, default=uuid.uuid4)
-    ref = RelationshipTo(PersistentValue, "HAS_VALUE", cardinality=neomodel.One)
+    ref = neomodel.RelationshipTo(PersistentValue, "HAS_VALUE", cardinality=neomodel.One)
 
-    def __init__(self, ref_value, name=None):
-        if name is not None:
-            super().__init__(name=name)
-        else:
-            super().__init__()
+    @property
+    def value(self):
+        return self.ref[0]
+
+    def anonymous_ref(self):
+        """
+        Initialises this reference into an anonymous reference
+        """
         self.save()
-        self.connect(ref_value)
+        return self
+
+    def named_ref(self, name):
+        self.name = name
+        self.save()
+        return self
+
+    def point_to(self, another_value):
+        self.ref.connect(another_value)
+        return self
 
 
 class DomainValue(PersistentValue):

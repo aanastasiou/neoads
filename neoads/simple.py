@@ -26,10 +26,7 @@ class SimpleValue(Value):
         """
         Default implementation for the assignment operator
         """
-        if name is not None:
-            super().__init__(value=value)
-        else:
-            super().__init__(value=value)
+        super().__init__(value=value)
         self.save()
 
     def _neoads_hash(self):

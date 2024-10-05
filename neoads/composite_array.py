@@ -15,7 +15,7 @@ import datetime
 import hashlib
 
 
-class VariableComposite(ElementVariable):
+class VectorValue(Value):
     """
     Base type for variables that are of Composite data types.
 
@@ -69,7 +69,7 @@ class VariableComposite(ElementVariable):
         return len(self.value)
 
 
-class CompositeString(VariableComposite):
+class StringValue(VectorValue):
     """
     A typical string.
 
@@ -92,7 +92,7 @@ class CompositeString(VariableComposite):
         return int(hashlib.sha256(self.value.encode("utf-8")).hexdigest(), base=16)
     
     
-class CompositeArrayString(VariableComposite):
+class VectorOfString(VectorValue):
     """
     A native Neo4j array of strings.
 
@@ -108,7 +108,7 @@ class CompositeArrayString(VariableComposite):
             raise TypeError(f"CompositeArrayString assignment expects str, received {type(value)}")
 
 
-class CompositeArrayNumber(VariableComposite):
+class VectorOfInteger(VectorValue):
     """
     A native Neo4j array of numbers.
 
@@ -175,7 +175,7 @@ class CompositeArrayNumber(VariableComposite):
         return self
     
 
-class CompositeArrayDate(VariableComposite):
+class VectorOfDate(VectorValue):
     """
     A native Neo4J array of dates.
 

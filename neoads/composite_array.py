@@ -8,7 +8,7 @@ Composite data types are resolved to neo4j native arrays.
 :date: Jan 2018
 """
 
-from .core import ElementVariable
+from .core import Value
 from . import exception
 import neomodel
 import datetime
@@ -22,17 +22,6 @@ class VectorValue(Value):
     ``VariableComposite`` are implemented on top of ``neomodel`` array "properties" (with the exception of
     ``CompositeString``) and therefore correspond to native Neo4J arrays.
     """
-
-    def __init__(self, value, name=None, **kwargs):
-        """
-        Default implementation for the assignment operator for composite variables
-
-        :param value:
-        """
-        if name is not None:
-            super().__init__(value=value, name=name, **kwargs)
-        else:
-            super().__init__(value=value, **kwargs)
 
     def clear(self):
         """
@@ -83,7 +72,7 @@ class StringValue(VectorValue):
     def __init__(self, value, name=None, **kwargs):
         if not isinstance(value, str):
             raise TypeError(f"CompositeString initialisation expects str received {type(value)}")
-        super().__init__(value=value, name=name, **kwargs)
+        super().__init__(value=value)
     
     def _neoads_hash(self):
         """
@@ -115,10 +104,10 @@ class VectorOfInteger(VectorValue):
     :param value: An array of Real numbers.
     :type value: neomodel.ArrayProperty
     """
-    value = neomodel.ArrayProperty(neomodel.FloatProperty())
+    value = neomodel.ArrayProperty(neomodel.IntegerProperty())
     
     def __setitem__(self, key, value):
-        if isinstance(value, float) or isinstance(value, int):
+        if isinstance(value,  int):
             return super().__setitem__(key, value)
         else:
             raise TypeError(f"CompositeArrayNumber assignment expects float received {type(value)}")
@@ -173,7 +162,23 @@ class VectorOfInteger(VectorValue):
             self.refresh()
 
         return self
+
+
+class VectorOfFloat(VectorValue):
+    """
+    A native Neo4j array of numbers.
+
+    :param value: An array of Real numbers.
+    :type value: neomodel.ArrayProperty
+    """
+    value = neomodel.ArrayProperty(neomodel.FloatProperty())
     
+    def __setitem__(self, key, value):
+        if isinstance(value,  float):
+            return super().__setitem__(key, value)
+        else:
+            raise TypeError(f"CompositeArrayNumber assignment expects float received {type(value)}")
+
 
 class VectorOfDate(VectorValue):
     """
@@ -189,6 +194,3 @@ class VectorOfDate(VectorValue):
             return super().__setitem__(key,value)
         else:
             raise TypeError(f"CompositeArrayDate assignment expected datetime received {type(value)}")
-
-
-

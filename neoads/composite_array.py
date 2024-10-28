@@ -15,7 +15,7 @@ import datetime
 import hashlib
 
 
-class VectorValue(Value):
+class ArrayValue(Value):
     """
     Base type for variables that are of Composite data types.
 
@@ -58,7 +58,7 @@ class VectorValue(Value):
         return len(self.value)
 
 
-class StringValue(VectorValue):
+class StringValue(ArrayValue):
     """
     A typical string.
 
@@ -69,7 +69,7 @@ class StringValue(VectorValue):
     """
     value = neomodel.StringProperty(index=True)
 
-    def __init__(self, value, name=None, **kwargs):
+    def __init__(self, value):
         if not isinstance(value, str):
             raise TypeError(f"CompositeString initialisation expects str received {type(value)}")
         super().__init__(value=value)
@@ -81,7 +81,7 @@ class StringValue(VectorValue):
         return int(hashlib.sha256(self.value.encode("utf-8")).hexdigest(), base=16)
     
     
-class VectorOfString(VectorValue):
+class ArrayOfString(ArrayValue):
     """
     A native Neo4j array of strings.
 
@@ -97,7 +97,7 @@ class VectorOfString(VectorValue):
             raise TypeError(f"CompositeArrayString assignment expects str, received {type(value)}")
 
 
-class VectorOfInteger(VectorValue):
+class ArrayOfInteger(ArrayValue):
     """
     A native Neo4j array of numbers.
 
@@ -164,7 +164,7 @@ class VectorOfInteger(VectorValue):
         return self
 
 
-class VectorOfFloat(VectorValue):
+class ArrayOfFloat(ArrayValue):
     """
     A native Neo4j array of numbers.
 
@@ -180,7 +180,7 @@ class VectorOfFloat(VectorValue):
             raise TypeError(f"CompositeArrayNumber assignment expects float received {type(value)}")
 
 
-class VectorOfDate(VectorValue):
+class ArrayOfDate(ArrayValue):
     """
     A native Neo4J array of dates.
 

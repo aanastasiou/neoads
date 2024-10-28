@@ -91,7 +91,7 @@ class ValueReference(neomodel.StructuredNode):
     ref = neomodel.RelationshipTo(PersistentValue, "HAS_VALUE", cardinality=neomodel.One)
 
     @property
-    def value(self):
+    def points_to(self):
         return self.ref[0]
 
     def anonymous_ref(self):

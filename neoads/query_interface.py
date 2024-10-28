@@ -10,10 +10,10 @@ The classes defined in this module can be used to store a specific **neo4j cyphe
 :date: Jan 2018
 """
 import neomodel
-from .composite_array import VariableComposite
+from .composite_array import ArrayValue
 
 
-class CompositeArrayObjectBase(VariableComposite):
+class CypherQueryInterfaceBase(ArrayValue):
     """
     Represents *a query* that upon instantiation returns results in a particular form.
 
@@ -35,7 +35,7 @@ class CompositeArrayObjectBase(VariableComposite):
         """
         Executes the query and returns the result.
         The data type of specific categories of queries is specialised further by descendants of
-        CompositeArrayObjectBase
+        CypherQueryInterfaceBase
 
         :return: Query Results
         """
@@ -60,7 +60,7 @@ class CompositeArrayObjectBase(VariableComposite):
         return self._result[item]
 
 
-class CompositeArrayObjectList(CompositeArrayObjectBase):
+class ListQueryInterface(CypherQueryInterfaceBase):
     """
     Represents a query that returns results as a Python list of dictionaries.
     It is therefore possible to request an item by integer index followed by column name.
@@ -70,7 +70,7 @@ class CompositeArrayObjectList(CompositeArrayObjectBase):
         return list(map(lambda x: dict(zip(attr, x)), items))
 
 
-class CompositeArrayObjectDict(CompositeArrayObjectBase):
+class DictQueryInterface(CypherQueryInterfaceBase):
     """
     Represents a query that returns results as a Python dict.
 
@@ -92,7 +92,7 @@ class CompositeArrayObjectDict(CompositeArrayObjectBase):
 try:
     import pandas
 
-    class CompositeArrayObjectDataFrame(CompositeArrayObjectBase):
+    class DataframeQueryInterface(CypherQueryInterfaceBase):
         """
         Represents a query that returns results as a pandas DataFrame.
     

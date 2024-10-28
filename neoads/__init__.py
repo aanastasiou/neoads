@@ -5,23 +5,19 @@ Abstact Data Structures over neo4j.
 :date: Feb 2023
 """
 
-# from .core import ElementDomain
-
-# from .simple import SimpleNumber, SimpleInteger, SimpleFloat, SimpleDate
 from .simple import IntegerValue, FloatValue, DateValue
-from .core import ValueReference
-from .core import ValuePair
+from .core import ValueReference, ValuePair
 
 
-# from .composite_array import (CompositeString, CompositeArrayString, CompositeArrayNumber,
-#                               CompositeArrayDate) 
+from .composite_array import (StringValue, ArrayOfString, ArrayOfInteger,
+                              ArrayOfFloat, ArrayOfDate) 
 
-# from .composite_array_object import (CompositeArrayObjectList, CompositeArrayObjectDict)
+from .query_interface import (ListQueryInterface, DictQueryInterface)
 
-# try:
-#     from .composite_array_object import CompositeArrayObjectDataFrame
-# except ImportError:
-#     pass
+try:
+    from .query_interface import DataframeQueryInterface
+except ImportError:
+    pass
 
 # from .ads_abstractset import AbstractSet
 # from .ads_abstractmap import AbstractMap

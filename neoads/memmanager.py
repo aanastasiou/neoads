@@ -2,7 +2,7 @@
 Establishes the memory manager object.
 
 At the moment, the memory manager handles a very limited amount of operations but ultimately, every operation in the
-future will be passing via the ``MemoryManager`` in the form of CYPHER (or augmented CYPHER) queries.
+future will be passing via the ``MemoryManager`` in the form of queries that would ultimately be compiled to CYPHER.
 
 :author: Athanasios Anastasiou
 :date: Mar 2019
@@ -20,7 +20,7 @@ class MemoryManager:
 
     .. note::
 
-        This should be thought of like a memory context object within which, all neoads variables live. It is basically
+        This should be thought of like a memory context object within which, all neoads values live. It is basically
         bounded only by the capacity of the server and network latencies.
 
     """

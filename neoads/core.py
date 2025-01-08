@@ -60,24 +60,24 @@ class Value(PersistentValue):
 class ValuePair(PersistentValue):
     """
     """
-    p_left = neomodel.RelationshipTo(PersistentValue, "CAR", cardinality=neomodel.One)
-    p_right = neomodel.RelationshipTo(PersistentValue, "CDR", cardinality=neomodel.One)
+    p_head = neomodel.RelationshipTo(PersistentValue, "HEAD", cardinality=neomodel.One)
+    p_tail = neomodel.RelationshipTo(PersistentValue, "TAIL", cardinality=neomodel.One)
 
     @property
-    def left(self):
-        return self.p_left[0]
+    def head(self):
+        return self.p_head[0]
 
     @property
-    def right(self):
-        return self.p_right[0]
+    def tail(self):
+        return self.p_tail[0]
 
-    def cons(self, left=None, right=None):
-        # If left or right are ValueReference then first de-reference and then connect
+    def cons(self, head=None, tail=None):
+        # If head or tail are ValueReference then first de-reference and then connect
         self.save()
-        if left is not None:
-            self.p_left.connect(left)
-        if right is not None:
-            self.p_right.connect(right)
+        if head is not None:
+            self.p_head.connect(head)
+        if tail is not None:
+            self.p_tail.connect(tail)
         return self
 
 
